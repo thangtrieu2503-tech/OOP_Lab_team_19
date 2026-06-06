@@ -1,6 +1,6 @@
 package vehicle;
 
-import vehicle.behavior.DrivingBehavior;
+import vehicle.behavior.DrivingStrategy;
 
 public abstract class Vehicle {
     protected double speed;
@@ -11,15 +11,15 @@ public abstract class Vehicle {
     protected double height;
     protected double safeDistance;
 
-    protected DrivingBehavior drivingBehavior;
+    protected DrivingStrategy drivingStrategy;
     protected MovementState currentState;
 
-    public Vehicle(double maxSpeed, double width, double height, double safeDistance, DrivingBehavior drivingBehavior){
+    public Vehicle(double maxSpeed, double width, double height, double safeDistance, DrivingStrategy drivingStrategy){
         this.maxSpeed = maxSpeed;
         this.width = width;
         this.height = height;
         this.safeDistance = safeDistance;
-        this.drivingBehavior = drivingBehavior;
+        this.drivingStrategy = drivingStrategy;
         this.currentState = MovementState.GOING_STRAIGHT;
     }
 
@@ -52,14 +52,23 @@ public abstract class Vehicle {
     }
 
     public void updateStatus(Vehicle vehicleInfront, boolean isRedLight){
-        drivingBehavior.handleMovement(this, vehicleInfront, isRedLight);
+        drivingStrategy.handleMovement(this, vehicleInfront, isRedLight);
     }
 
     //Getter + Setter
-    public double getPositionX() {
+
+    public double getSpeed() {
+        return speed;
+    }
+
+    public double getMaxSpeed() {
+        return maxSpeed;
+    }
+
+    public double getX() {
         return positionX;
     }
-    public double getPositionY() {
+    public double getY() {
         return positionY;
     }
     public double getWidth() {
@@ -78,7 +87,7 @@ public abstract class Vehicle {
         this.positionX = x;
         this.positionY = y;
     }
-    public void setDrivingBehavior(DrivingBehavior behavior){
-        this.drivingBehavior = behavior;
+    public void setDrivingBehavior(DrivingStrategy behavior){
+        this.drivingStrategy = behavior;
     }
 }

@@ -1,18 +1,26 @@
 package vehicle.behavior;
 
 import vehicle.Vehicle;
-//Các bố xe ưu tiên thì còi phải to, vượt đèn đỏ,...
-public class EmergencyDriver implements DrivingBehavior{
+import java.util.List;
+
+public class EmergencyDriver implements DrivingStrategy {
     @Override
-    public void handleMovement(Vehicle current, Vehicle inFront, boolean isRedLight){
-        //Các bố đếch quan tâm đèn đỏ, đến đoạn vượt xe luôn
-        if(inFront != null){
-            double distance = inFront.getPositionX() - current.getPositionX();
-            if(distance < current.getSafeDistance()){
-                current.playSound("soundfile");
-                current.overtake();
+    public void updateMovement(Vehicle current, Vehicle frontVehicle, boolean isRedLight, double distanceToLight, List<Vehicle> allVehicles) {
+        // Xe ưu tiên (Cứu thương/Cứu hỏa) bỏ qua hoàn toàn đèn đỏ
+
+        // Kiểm tra khoảng cách trực diện để tránh đâm đuôi xe trước
+        if (frontVehicle != null) {
+            double distanceToFront = frontVehicle.getX() - (current.getX() + current.getWidth());
+            if (distanceToFront < 20.0) {
+                // Giảm tốc tạm thời bằng xe trước để chờ xe đó dạt ra nhường đường
+                current.setSpeed(frontVehicle.getSpeed());
+                return;
             }
         }
-        current.move();
+
+        // Luôn duy trì vận tốc cao nhất
+        if (current.getSpeed() < current.getMaxSpeed()) {
+            current.setSpeed(current.getSpeed() + 0.5);
+        }
     }
 }
