@@ -1,6 +1,7 @@
 package vehicle;
 
 import vehicle.behavior.DrivingStrategy;
+import java.util.List;
 
 public abstract class Vehicle {
     protected double speed;
@@ -51,8 +52,8 @@ public abstract class Vehicle {
 
     }
 
-    public void updateStatus(Vehicle vehicleInfront, boolean isRedLight){
-        drivingStrategy.handleMovement(this, vehicleInfront, isRedLight);
+    public void updateStatus(Vehicle vehicleInfront, boolean isRedLight, List<Vehicle> allVehicles){
+        drivingStrategy.updateMovement(this, vehicleInfront, isRedLight, 2.5, allVehicles);
     }
 
     //Getter + Setter
