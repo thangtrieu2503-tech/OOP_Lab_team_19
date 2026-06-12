@@ -1,9 +1,0 @@
-traffic\components\SimulationCanvas.class
-traffic\components\ControlPanel.class
-traffic\map\IntersectionNode.class
-traffic\main\MainLauncher.class
-module-info.class
-traffic\sounds\SoundManager.class
-traffic\render\Renderer.class
-traffic\components\MockVehicle.class
-traffic\components\TrafficEngine.class

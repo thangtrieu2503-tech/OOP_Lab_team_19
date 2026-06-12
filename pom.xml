@@ -35,9 +35,10 @@
                 <version>0.0.8</version>
                 <configuration>
                     <mainClass>traffic/traffic.main.MainLauncher</mainClass>
-                    <option>
+
+                    <options>
                         <option>--enable-native-access=traffic</option>
-                    </option>
+                    </options>
                 </configuration>
             </plugin>
         </plugins>
