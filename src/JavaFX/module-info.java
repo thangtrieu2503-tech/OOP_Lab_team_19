@@ -4,7 +4,6 @@ module traffic {
     
     exports traffic.main;
     exports traffic.components;
-    exports traffic.map;
     exports traffic.render;
     exports traffic.sounds;
 }

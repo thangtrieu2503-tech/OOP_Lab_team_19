@@ -5,34 +5,35 @@ import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
-import traffic.components.TrafficEngine;
+
 import traffic.components.SimulationCanvas;
 import traffic.components.ControlPanel;
-import traffic.map.IntersectionNode;
 
-import VehicleSystem.vehicle.VehicleManager;
-import VehicleSystem.vehicle.Type.Car;
-import VehicleSystem.vehicle.Type.Ambulance;
-import VehicleSystem.vehicle.Type.Motorbike;
-import VehicleSystem.vehicle.Type.FireTruck;
-import VehicleSystem.vehicle.Type.Bus;
-
-import java.util.List;
-import java.util.Random;
+// =========================================================
+// IMPORT HỆ THỐNG MAP VÀ QUẢN LÝ XE ĐỜI MỚI
+// =========================================================
+import Map.map.RoadGraph;
+import Map.map.MapLoader;
+import Map.engine.VehicleManager;
+import Map.engine.VehicleSpawner;
 
 public class MainLauncher extends Application {
 
-    private static int nextGridX = 3;
     private final boolean[] isPaused = {false};
 
-    // KHỞI TẠO TỔNG TƯ LỆNH QUẢN LÝ XE Ở ĐÂY
+    // KHỞI TẠO BỘ TƯ LỆNH, BẢN ĐỒ VÀ LÒ ẤP XE Ở ĐÂY
     public static VehicleManager vehicleManager = new VehicleManager();
+    public static RoadGraph roadGraph;
+    public static VehicleSpawner spawner = new VehicleSpawner();
 
     @Override
     public void start(Stage primaryStage) {
         traffic.render.Renderer.loadSprites();
-        TrafficEngine trafficEngine = new TrafficEngine();
-        SimulationCanvas canvas = new SimulationCanvas(trafficEngine);
+
+        // 1. NẠP BẢN ĐỒ TỪ NHÁNH MAP_TRAFFIC
+        roadGraph = MapLoader.loadMap();
+
+        SimulationCanvas canvas = new SimulationCanvas();
         ControlPanel controlPanel = new ControlPanel();
 
         controlPanel.getBtnZoomIn().setOnAction(e -> canvas.zoomIn());
@@ -50,73 +51,24 @@ public class MainLauncher extends Application {
             controlPanel.getBtnResume().setDisable(true);
         });
 
+        // TẠM KHÓA NÚT ADD ROAD VÌ HỆ THỐNG MỚI DÙNG MAPLOADER RỒI
         controlPanel.getBtnAddRoad().setOnAction(e -> {
-            for (int r = 0; r < 3; r++) {
-                trafficEngine.addCustomNode(new IntersectionNode(99, nextGridX, r));
-            }
-            nextGridX++;
-            canvas.draw();
+            System.out.println("⚠️ Tính năng vẽ đường tự do đang được nâng cấp! Hiện tại bản đồ đã được nạp tự động qua MapLoader.");
         });
 
         // ==============================================================
-        // SỬA NÚT SPAWN: CHO XE XUẤT HIỆN Ở NGÃ TƯ RANDOM VÀ TỰ TÌM ĐƯỜNG
-        // ==============================================================
-        // ==============================================================
-        // SỬA NÚT SPAWN: CHO XE XUẤT HIỆN Ở 1 VỊ TRÍ CỐ ĐỊNH
+        // NÚT SPAWN SIÊU GỌN NHẸ: GIAO VIỆC CHO VEHICLE SPAWNER!
         // ==============================================================
         controlPanel.getBtnSpawn().setOnAction(e -> {
             int count = controlPanel.getSpinnerSpawnCount().getValue();
-            String type = controlPanel.getComboVehicleType().getValue();
-            String[] rawTypes = {"CAR", "AMBULANCE", "MOTORBIKE", "FIRE_TRUCK", "BUS"};
-            java.util.Random rand = new java.util.Random();
 
-            java.util.List<IntersectionNode> nodes = trafficEngine.getIntersectionNodes();
+            // Gọi 1 dòng duy nhất là máy ấp tự động nhả xe xịn ra đường
+            spawner.spawnTraffic(vehicleManager, roadGraph, count);
 
-            if (nodes.isEmpty()) {
-                System.out.println("⚠️ Lỗi: Bản đồ chưa có ngã tư nào, hãy bấm Add Road trước!");
-                return;
-            }
-
-            if (nodes.size() >= 2) {
-                for (int i = 0; i < count; i++) {
-                    String finalType = type.equalsIgnoreCase("All") ? rawTypes[rand.nextInt(rawTypes.length)] : type.toUpperCase();
-
-                    // SỬA Ở ĐÂY: KHÔNG RANDOM NỮA, LUÔN LẤY NODE ĐẦU TIÊN (Index 0)
-                    // (Đường grid 0, 0 - thường là góc trên cùng bên trái màn hình)
-                    IntersectionNode start = nodes.get(0);
-
-                    // Lọc ra các ngã tư hàng xóm để xe bắt đầu chạy
-                    java.util.List<IntersectionNode> neighbors = new java.util.ArrayList<>();
-                    for (IntersectionNode n : nodes) {
-                        int dx = Math.abs(n.getGridX() - start.getGridX());
-                        int dy = Math.abs(n.getGridY() - start.getGridY());
-                        if ((dx == 1 && dy == 0) || (dx == 0 && dy == 1)) {
-                            neighbors.add(n);
-                        }
-                    }
-
-                    // Chốt mục tiêu đầu tiên (có thể random chọn đường rẽ đầu tiên)
-                    IntersectionNode target;
-                    if (!neighbors.isEmpty()) {
-                        target = neighbors.get(rand.nextInt(neighbors.size()));
-                    } else {
-                        target = start;
-                    }
-
-                    String id = finalType + "_" + System.currentTimeMillis() + "_" + i;
-
-                    switch(finalType) {
-                        case "CAR": vehicleManager.addVehicle(new Car(id, start, target, nodes)); break;
-                        case "BUS": vehicleManager.addVehicle(new Bus(id, start, target, nodes)); break;
-                        case "AMBULANCE": vehicleManager.addVehicle(new Ambulance(id, start, target, nodes)); break;
-                        case "FIRE_TRUCK": vehicleManager.addVehicle(new FireTruck(id, start, target, nodes)); break;
-                        case "MOTORBIKE": vehicleManager.addVehicle(new Motorbike(id, start, target, nodes)); break;
-                    }
-                }
-                canvas.draw();
-            }
+            canvas.draw();
         });
-        // (Giữ nguyên các nút chuyển Rectangle/Image của ông)
+
+        // (Giữ nguyên các nút chuyển Rectangle/Image)
         controlPanel.getBtnRectangle().setOnAction(e -> {
             canvas.setRectangleMode(true);
             controlPanel.getBtnRectangle().setStyle("-fx-background-color: #D3D3D3; -fx-border-color: #999999; -fx-border-radius: 2; -fx-background-radius: 2; -fx-font-family: 'Segoe UI'; -fx-font-size: 11; -fx-font-weight: bold;");
@@ -141,14 +93,16 @@ public class MainLauncher extends Application {
         canvas.draw();
 
         // ==============================================================
-        // GAME LOOP ĐÃ ĐƯỢC TẨY NÃO: TRAO QUYỀN CHO BỘ TƯ LỆNH AI
+        // GAME LOOP: CHẠY HỆ THỐNG AI MỚI
+        // ==============================================================
+        // ==============================================================
+        // GAME LOOP: CHẠY HỆ THỐNG AI MỚI
         // ==============================================================
         new Thread(() -> {
             while (true) {
                 if (!isPaused[0]) {
-                    // Lấy màu đèn hiện tại (giả định engine của ông đang dùng "GREEN", "RED"...)
-                    String currentLight = trafficEngine.getCurrentMockColor();
-                    if(currentLight == null) currentLight = "GREEN"; // Đề phòng lỗi null
+                    // Cấp đèn XANH vĩnh viễn cho xe chạy test Map trước đã
+                    String currentLight = "GREEN";
 
                     // GỌI 1 LỆNH DUY NHẤT LÀ TOÀN BỘ XE TỰ TÍNH TOÁN RẼ, PHANH, CHẠY!
                     vehicleManager.updateAllMovement(currentLight);

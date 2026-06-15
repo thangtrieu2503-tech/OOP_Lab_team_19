@@ -4,12 +4,16 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import javafx.scene.transform.Rotate;
-import traffic.map.IntersectionNode;
+
 import java.util.List;
+
+// BÊ HỆ THỐNG MAP XỊN VÀO ĐÂY
+import Map.map.Intersection;
+import Map.map.Road;
+import Map.map.RoadGraph;
 
 public class SimulationCanvas extends Canvas {
 
-    private TrafficEngine engine;
     private double zoomScale = 1.0;
     private double mapDrawX = 0, mapDrawY = 0, mapDrawW = 800, mapDrawH = 550;
     private boolean isRectangleMode = true;
@@ -17,8 +21,8 @@ public class SimulationCanvas extends Canvas {
     private double panOffsetX = 0, panOffsetY = 0;
     private double dragStartX, dragStartY;
 
-    public SimulationCanvas(TrafficEngine engine) {
-        this.engine = engine;
+    // KHÔNG XÀI TRAFFIC ENGINE NỮA NHÉ
+    public SimulationCanvas() {
         this.setWidth(800);
         this.setHeight(550);
 
@@ -30,7 +34,7 @@ public class SimulationCanvas extends Canvas {
         this.setOnMouseDragged(e -> {
             panOffsetX = e.getX() - dragStartX;
             panOffsetY = e.getY() - dragStartY;
-            draw(); // Ép vẽ lại liên tục khi kéo chuột di chuyển Map (Pan)
+            draw();
         });
     }
 
@@ -54,8 +58,9 @@ public class SimulationCanvas extends Canvas {
         double panelHeight = this.getHeight();
         double paddingLeft = 70;
 
-        double baseMapWidth = 1000.0;
-        double baseMapHeight = 1000.0;
+        // Cho map base to ra để vẽ đường tự do
+        double baseMapWidth = 2000.0;
+        double baseMapHeight = 2000.0;
         double imgRatio = baseMapWidth / baseMapHeight;
         double panelRatio = (panelWidth - paddingLeft) / panelHeight;
 
@@ -82,209 +87,93 @@ public class SimulationCanvas extends Canvas {
 
         gc.setImageSmoothing(true);
 
-        // Vẽ màu cỏ nền sa hình xanh mướt
+        // Nền cỏ
         gc.setFill(Color.web("#D4EDDA"));
         gc.fillRect(0, 0, panelWidth, panelHeight);
 
-        double step = 320;
-        double startOffset = 160;
-        double circleDiameter = 200;
-        double roadWidth = 140;
+        // Lấy bản đồ xịn từ MainLauncher
+        RoadGraph roadGraph = traffic.main.MainLauncher.roadGraph;
+        if (roadGraph == null) return; // Tránh lỗi chưa load map xong
+
+        double circleDiameter = 200 * scaleX;
+        double roadWidth = 140 * scaleX;
         Color roadColor = Color.web("#555555");
 
-        List<IntersectionNode> currentNodes = engine.getIntersectionNodes();
+        // ================= BƯỚC 1: VẼ CÁC TRỤC ĐƯỜNG BẰNG VECTOR TỰ DO =================
+        for (Road road : roadGraph.getRoads()) {
+            double startX = mapDrawX + road.getStart().getX() * scaleX;
+            double startY = mapDrawY + road.getStart().getY() * scaleY;
+            double endX = mapDrawX + road.getEnd().getX() * scaleX;
+            double endY = mapDrawY + road.getEnd().getY() * scaleY;
 
-        // ================= BƯỚC 1: VẼ CÁC TRỤC ĐƯỜNG 3 LÀN MỖI CHIỀU =================
-        for (IntersectionNode n1 : currentNodes) {
-            double cx1 = mapDrawX + (startOffset + n1.getGridX() * step) * scaleX;
-            double cy1 = mapDrawY + (startOffset + n1.getGridY() * step) * scaleY;
+            // Dùng stroke nét to để vẽ đường nhựa (Bao luôn cả đường chéo)
+            gc.setStroke(roadColor);
+            gc.setLineWidth(roadWidth);
+            gc.strokeLine(startX, startY, endX, endY);
 
-            for (IntersectionNode n2 : currentNodes) {
-                double cx2 = mapDrawX + (startOffset + n2.getGridX() * step) * scaleX;
-                double cy2 = mapDrawY + (startOffset + n2.getGridY() * step) * scaleY;
-                double rActual = (circleDiameter / 2.0) * scaleX;
-
-                // ---- TRỤC ĐƯỜNG NGANG ----
-                if (n2.getGridX() == n1.getGridX() + 1 && n2.getGridY() == n1.getGridY()) {
-                    double rw = cx2 - cx1;
-                    double rh = roadWidth * scaleY;
-
-                    gc.setFill(roadColor);
-                    gc.fillRect(cx1, cy1 - rh / 2.0, rw, rh);
-
-                    gc.setFill(Color.web("#FFC107"));
-                    gc.fillRect(cx1 + rActual, cy1 - (2 * scaleY), rw - (rActual * 2), 4 * scaleY);
-
-                    gc.setStroke(Color.WHITE);
-                    gc.setLineWidth(Math.max(0.5, 1 * scaleX));
-                    gc.setLineDashes(new double[]{10 * scaleX, 10 * scaleX});
-
-                    double laneDisplacement = (roadWidth / 6.0) * scaleY;
-                    gc.strokeLine(cx1 + rActual, cy1 - laneDisplacement, cx2 - rActual, cy1 - laneDisplacement);
-                    gc.strokeLine(cx1 + rActual, cy1 - laneDisplacement * 2, cx2 - rActual, cy1 - laneDisplacement * 2);
-                    gc.strokeLine(cx1 + rActual, cy1 + laneDisplacement, cx2 - rActual, cy1 + laneDisplacement);
-                    gc.strokeLine(cx1 + rActual, cy1 + laneDisplacement * 2, cx2 - rActual, cy1 + laneDisplacement * 2);
-
-                    gc.setLineDashes(null);
-                }
-
-                // ---- TRỤC ĐƯỜNG ĐỨNG ----
-                if (n2.getGridY() == n1.getGridY() + 1 && n2.getGridX() == n1.getGridX()) {
-                    double rw = roadWidth * scaleX;
-                    double rh = cy2 - cy1;
-
-                    gc.setFill(roadColor);
-                    gc.fillRect(cx1 - rw / 2.0, cy1, rw, rh);
-
-                    gc.setFill(Color.web("#FFC107"));
-                    gc.fillRect(cx1 - (2 * scaleX), cy1 + rActual, 4 * scaleX, rh - (rActual * 2));
-
-                    gc.setStroke(Color.WHITE);
-                    gc.setLineWidth(Math.max(0.5, 1 * scaleX));
-                    gc.setLineDashes(new double[]{10 * scaleY, 10 * scaleY});
-
-                    double laneDisplacement = (roadWidth / 6.0) * scaleX;
-                    gc.strokeLine(cx1 - laneDisplacement, cy1 + rActual, cx1 - laneDisplacement, cy2 - rActual);
-                    gc.strokeLine(cx1 - laneDisplacement * 2, cy1 + rActual, cx1 - laneDisplacement * 2, cy2 - rActual);
-                    gc.strokeLine(cx1 + laneDisplacement, cy1 + rActual, cx1 + laneDisplacement, cy2 - rActual);
-                    gc.strokeLine(cx1 + laneDisplacement * 2, cy1 + rActual, cx1 + laneDisplacement * 2, cy2 - rActual);
-
-                    gc.setLineDashes(null);
-                }
-            }
+            // Vẽ vạch kẻ đường màu vàng ở giữa
+            gc.setStroke(Color.web("#FFC107"));
+            gc.setLineWidth(4 * scaleX);
+            gc.strokeLine(startX, startY, endX, endY);
         }
 
-        // ================= BƯỚC 2: VẼ BÙNG BINH + ĐẢO CỎ =================
-        double rComm = circleDiameter * scaleX;
-        for (IntersectionNode node : currentNodes) {
-            double cx = mapDrawX + (startOffset + node.getGridX() * step) * scaleX;
-            double cy = mapDrawY + (startOffset + node.getGridY() * step) * scaleY;
+        // ================= BƯỚC 2: VẼ NGÃ TƯ + ĐẢO CỎ =================
+        for (Intersection node : roadGraph.getIntersections()) {
+            double cx = mapDrawX + node.getPosition().getX() * scaleX;
+            double cy = mapDrawY + node.getPosition().getY() * scaleY;
 
+            // Bùng binh nhựa
             gc.setFill(roadColor);
-            gc.fillOval(cx - rComm / 2.0, cy - rComm / 2.0, rComm, rComm);
+            gc.fillOval(cx - circleDiameter / 2.0, cy - circleDiameter / 2.0, circleDiameter, circleDiameter);
 
+            // Đảo cỏ xanh giữa ngã tư
             gc.setFill(Color.web("#28A745"));
             double centerIslandD = 75 * scaleX;
             gc.fillOval(cx - centerIslandD / 2.0, cy - centerIslandD / 2.0, centerIslandD, centerIslandD);
 
+            // Viền trắng cho đảo cỏ
             gc.setStroke(Color.WHITE);
             gc.setLineWidth(2.5 * scaleX);
             gc.strokeOval(cx - centerIslandD / 2.0, cy - centerIslandD / 2.0, centerIslandD, centerIslandD);
         }
 
-        drawAllTrafficLights(gc, scaleX, scaleY);
+        // Tạm ẩn đèn giao thông đi, phần đèn mình sẽ tích hợp vào sau nếu rảnh
+        // drawAllTrafficLights(gc, scaleX, scaleY);
 
-        // GỌI HÀM VẼ XE AI Ở ĐÂY
+        // ================= BƯỚC 3: VẼ XE AI =================
         drawVehicles(gc, scaleX, scaleY);
     }
 
-    private void drawSingleLight(GraphicsContext gc, double x, double y, double d, String state, boolean isHorizontal) {
-        double gap = Math.max(1, d / 4.0);
-        Color off = Color.web("#3C3C3C");
-        int countdown = engine.getLightCountdown();
-
-        if (isHorizontal) {
-            gc.setFill(Color.web("#141414"));
-            gc.fillRoundRect(x - gap, y - gap, (d + gap) * 4.0 + gap, d + (gap * 2.0), gap, gap);
-            gc.setFill(state.equalsIgnoreCase("RED") ? Color.RED : off); gc.fillOval(x, y, d, d);
-            gc.setFill(state.equalsIgnoreCase("YELLOW") ? Color.YELLOW : off); gc.fillOval(x + d + gap, y, d, d);
-            gc.setFill(state.equalsIgnoreCase("GREEN") ? Color.GREEN : off); gc.fillOval(x + (d + gap) * 2.0, y, d, d);
-
-            double boxX = x + (d + gap) * 3.0;
-            gc.setFill(Color.BLACK); gc.fillRect(boxX, y, d, d);
-            gc.setFill(Color.WHITE); gc.setFont(javafx.scene.text.Font.font("Arial", javafx.scene.text.FontWeight.BOLD, Math.max(d - 2, 10)));
-            gc.fillText(String.valueOf(countdown), boxX + 2, y + d - 2);
-        } else {
-            gc.setFill(Color.web("#141414"));
-            gc.fillRoundRect(x - gap, y - gap, d + (gap * 2.0), (d + gap) * 4.0 + gap, gap, gap);
-
-            gc.setFill(Color.BLACK); gc.fillRect(x, y, d, d);
-            gc.setFill(Color.WHITE); gc.setFont(javafx.scene.text.Font.font("Arial", javafx.scene.text.FontWeight.BOLD, Math.max(d - 2, 10)));
-            gc.fillText(String.valueOf(countdown), x + 2, y + d - 2);
-
-            gc.setFill(state.equalsIgnoreCase("RED") ? Color.RED : off); gc.fillOval(x, y + d + gap, d, d);
-            gc.setFill(state.equalsIgnoreCase("YELLOW") ? Color.YELLOW : off); gc.fillOval(x, y + (d + gap) * 2.0, d, d);
-            gc.setFill(state.equalsIgnoreCase("GREEN") ? Color.GREEN : off); gc.fillOval(x, y + (d + gap) * 3.0, d, d);
-        }
-    }
-
-    private void drawAllTrafficLights(GraphicsContext gc, double scaleX, double scaleY) {
-        String stateEW = engine.getCurrentMockColor();
-        String stateNS = stateEW.equals("RED") ? "GREEN" : (stateEW.equals("GREEN") ? "YELLOW" : "RED");
-
-        double dynamicD = 12.0 * scaleX; if (dynamicD < 6) dynamicD = 6;
-        double gap = Math.max(1, dynamicD / 4.0);
-        double lightBoxLength = (dynamicD + gap) * 4.0 + gap;
-
-        double step = 320; double startOffset = 160;
-        double rActual = (200.0 / 2.0) * scaleX;
-        double currentRoadW = 140.0 * scaleY; double laneCenter = currentRoadW / 4.0;
-        double paddingStop = rActual + (6.0 * scaleY);
-
-        for (IntersectionNode n1 : engine.getIntersectionNodes()) {
-            double cx = mapDrawX + (startOffset + n1.getGridX() * step) * scaleX;
-            double cy = mapDrawY + (startOffset + n1.getGridY() * step) * scaleY;
-
-            boolean hasRight = false; boolean hasLeft = false; boolean hasBottom = false; boolean hasTop = false;
-            for (IntersectionNode n2 : engine.getIntersectionNodes()) {
-                if (n2.getGridX() == n1.getGridX() + 1 && n2.getGridY() == n1.getGridY()) hasRight = true;
-                if (n2.getGridX() == n1.getGridX() - 1 && n2.getGridY() == n1.getGridY()) hasLeft = true;
-                if (n2.getGridY() == n1.getGridY() + 1 && n2.getGridX() == n1.getGridX()) hasBottom = true;
-                if (n2.getGridY() == n1.getGridY() - 1 && n2.getGridX() == n1.getGridX()) hasTop = true;
-            }
-
-            if (hasTop) drawSingleLight(gc, cx - laneCenter - (lightBoxLength / 2.0), cy - paddingStop - dynamicD, dynamicD, stateNS, true);
-            if (hasBottom) drawSingleLight(gc, cx + laneCenter - (lightBoxLength / 2.0), cy + paddingStop, dynamicD, stateNS, true);
-            if (hasLeft) drawSingleLight(gc, cx - paddingStop - dynamicD, cy - laneCenter - (lightBoxLength / 2.0), dynamicD, stateEW, false);
-            if (hasRight) drawSingleLight(gc, cx + rActual + (10.0 * scaleY), cy + laneCenter - (lightBoxLength / 2.0), dynamicD, stateEW, false);
-        }
-    }
-
     // ==============================================================
-    // 🚀 HÀM VẼ XE ĐÃ ĐƯỢC ĐỘ LẠI ĐỂ ĐỌC DỮ LIỆU TỪ AI VEHICLE MANAGER
+    // 🚀 HÀM VẼ XE LẤY TỪ VEHICLE MANAGER XỊN CỦA MAIN LAUNCHER
     // ==============================================================
     private void drawVehicles(GraphicsContext gc, double scaleX, double scaleY) {
-        // Lấy danh sách xe xịn từ quản lý của MainLauncher
-        for (VehicleSystem.vehicle.Vehicle vehicle : traffic.main.MainLauncher.vehicleManager.getActiveVehicles()) {
+        if (traffic.main.MainLauncher.vehicleManager == null) return;
+
+        for (VehicleSystem.vehicle.Vehicle vehicle : traffic.main.MainLauncher.vehicleManager.getVehicles()) {
 
             double virtualW = 42;
             double virtualH = 20;
             Color rectColor = Color.DODGERBLUE;
 
-            // Kích thước và màu sắc tuỳ loại xe (GIỮ NGUYÊN CODE CỦA ÔNG)
             switch (vehicle.getType()) {
-                case "BUS":
-                    virtualW = 75; virtualH = 25; rectColor = Color.DARKBLUE;
-                    break;
-                case "TRUCK":
-                    virtualW = 68; virtualH = 24; rectColor = Color.DARKSLATEGRAY;
-                    break;
-                case "FIRE_TRUCK":
-                    virtualW = 65; virtualH = 25; rectColor = Color.CRIMSON;
-                    break;
-                case "AMBULANCE":
-                    virtualW = 54; virtualH = 22; rectColor = Color.WHITE;
-                    break;
-                case "MOTORBIKE":
-                case "BIKE":
-                    virtualW = 24; virtualH = 11; rectColor = Color.ORANGE;
-                    break;
+                case "BUS": virtualW = 75; virtualH = 25; rectColor = Color.DARKBLUE; break;
+                case "TRUCK": virtualW = 68; virtualH = 24; rectColor = Color.DARKSLATEGRAY; break;
+                case "FIRE_TRUCK": virtualW = 65; virtualH = 25; rectColor = Color.CRIMSON; break;
+                case "AMBULANCE": virtualW = 54; virtualH = 22; rectColor = Color.WHITE; break;
+                case "MOTORBIKE": virtualW = 24; virtualH = 11; rectColor = Color.ORANGE; break;
             }
 
             double targetW = virtualW * scaleX;
             double targetH = virtualH * scaleY;
 
-            // Chuyển đổi tọa độ xe từ AI ra tọa độ Pixel trên màn hình (đã tính thu phóng và dịch chuyển map)
-            // LƯU Ý: vehicle.getX() và getY() hiện tại chính là TÂM CỦA XE
             double screenCenterX = mapDrawX + (vehicle.getX() * scaleX);
             double screenCenterY = mapDrawY + (vehicle.getY() * scaleY);
 
-            // Tính ra góc trên cùng bên trái để cái hàm fillRoundRect nó vẽ cho chuẩn tâm
             double drawX = screenCenterX - targetW / 2.0;
             double drawY = screenCenterY - targetH / 2.0;
 
             gc.save();
-            // Xoay hướng xe theo góc AI bẻ lái (Quay quanh tâm xe)
             Rotate r = new Rotate(vehicle.getAngle(), screenCenterX, screenCenterY);
             gc.setTransform(r.getMxx(), r.getMxy(), r.getMyx(), r.getMyy(), r.getTx(), r.getTy());
 
@@ -295,7 +184,6 @@ public class SimulationCanvas extends Canvas {
                 gc.fillRoundRect(drawX, drawY, targetW, targetH, 6 * scaleX, 6 * scaleY);
                 gc.strokeRoundRect(drawX, drawY, targetW, targetH, 6 * scaleX, 6 * scaleY);
 
-                // Hiệu ứng đèn LED xanh đỏ chớp tắt cho xe cứu thương/cứu hỏa
                 if (vehicle.getType().equals("AMBULANCE") || vehicle.getType().equals("FIRE_TRUCK")) {
                     boolean toggle = (System.currentTimeMillis() / 150) % 2 == 0;
                     double ledSize = 5.0 * scaleX;
@@ -305,7 +193,6 @@ public class SimulationCanvas extends Canvas {
                     gc.fillOval(screenCenterX, screenCenterY - ledSize / 2.0, ledSize, ledSize);
                 }
             } else {
-                // CHẾ ĐỘ SPRITE ẢNH ĐẸP
                 javafx.scene.image.Image sprite = traffic.render.Renderer.getSprite(vehicle.getType());
                 if (sprite != null) {
                     gc.drawImage(sprite, drawX, drawY, targetW, targetH);
