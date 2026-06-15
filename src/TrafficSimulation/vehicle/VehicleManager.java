@@ -1,4 +1,4 @@
-package VehicleSystem.vehicle;
+package TrafficSimulation.vehicle;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -245,7 +245,7 @@ public class SimulationCanvas extends Canvas {
     // ==============================================================
     private void drawVehicles(GraphicsContext gc, double scaleX, double scaleY) {
         // Lấy danh sách xe xịn từ quản lý của MainLauncher
-        for (VehicleSystem.vehicle.Vehicle vehicle : traffic.main.MainLauncher.vehicleManager.getActiveVehicles()) {
+        for (TrafficSimulation.vehicle.Vehicle vehicle : traffic.main.MainLauncher.vehicleManager.getActiveVehicles()) {
 
             double virtualW = 42;
             double virtualH = 20;

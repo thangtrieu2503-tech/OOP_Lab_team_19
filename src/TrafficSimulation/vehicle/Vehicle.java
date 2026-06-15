@@ -1,6 +1,6 @@
-package VehicleSystem.vehicle;
+package TrafficSimulation.vehicle;
 
-import VehicleSystem.behavior.DrivingStrategy;
+import TrafficSimulation.behavior.DrivingStrategy;
 import traffic.map.IntersectionNode;
 import java.util.ArrayList;
 import java.util.List;

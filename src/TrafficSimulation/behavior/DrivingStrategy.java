@@ -1,6 +1,6 @@
-package VehicleSystem.behavior;
+package TrafficSimulation.behavior;
 
-import VehicleSystem.vehicle.Vehicle;
+import TrafficSimulation.vehicle.Vehicle;
 import java.util.List;
 
 public interface DrivingStrategy {

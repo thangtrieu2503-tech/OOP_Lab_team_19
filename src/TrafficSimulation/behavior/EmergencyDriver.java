@@ -1,6 +1,6 @@
-package VehicleSystem.behavior; // (Hoặc package VehicleSystem.vehicle tùy cấu trúc hiện tại của ông)
+package TrafficSimulation.behavior; // (Hoặc package VehicleSystem.vehicle tùy cấu trúc hiện tại của ông)
 
-import VehicleSystem.vehicle.Vehicle;
+import TrafficSimulation.vehicle.Vehicle;
 
 import java.util.List;
 

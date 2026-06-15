@@ -10,15 +10,12 @@ import traffic.components.SimulationCanvas;
 import traffic.components.ControlPanel;
 import traffic.map.IntersectionNode;
 
-import VehicleSystem.vehicle.VehicleManager;
-import VehicleSystem.vehicle.Type.Car;
-import VehicleSystem.vehicle.Type.Ambulance;
-import VehicleSystem.vehicle.Type.Motorbike;
-import VehicleSystem.vehicle.Type.FireTruck;
-import VehicleSystem.vehicle.Type.Bus;
-
-import java.util.List;
-import java.util.Random;
+import TrafficSimulation.vehicle.VehicleManager;
+import TrafficSimulation.vehicle.Type.Car;
+import TrafficSimulation.vehicle.Type.Ambulance;
+import TrafficSimulation.vehicle.Type.Motorbike;
+import TrafficSimulation.vehicle.Type.FireTruck;
+import TrafficSimulation.vehicle.Type.Bus;
 
 public class MainLauncher extends Application {
 

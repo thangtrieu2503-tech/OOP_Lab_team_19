@@ -1,7 +1,7 @@
-package VehicleSystem.vehicle.Type; // (Đổi lại tên package nếu máy ông đang dùng VehicleSystem.vehicle)
+package TrafficSimulation.vehicle.Type; // (Đổi lại tên package nếu máy ông đang dùng VehicleSystem.vehicle)
 
-import VehicleSystem.behavior.NormalDriver;
-import VehicleSystem.vehicle.Vehicle;
+import TrafficSimulation.behavior.NormalDriver;
+import TrafficSimulation.vehicle.Vehicle;
 import traffic.map.IntersectionNode;
 import java.util.List;
 
