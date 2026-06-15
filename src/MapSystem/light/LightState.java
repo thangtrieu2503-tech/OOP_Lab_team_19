@@ -1,4 +1,3 @@
 package MapSystem.light;
 
-public enum LightState {
-}
+public enum LightState { RED, YELLOW, GREEN }
