@@ -61,6 +61,9 @@ public class MainLauncher extends Application {
         // ==============================================================
         // SỬA NÚT SPAWN: CHO XE XUẤT HIỆN Ở NGÃ TƯ RANDOM VÀ TỰ TÌM ĐƯỜNG
         // ==============================================================
+        // ==============================================================
+        // SỬA NÚT SPAWN: CHO XE XUẤT HIỆN Ở 1 VỊ TRÍ CỐ ĐỊNH
+        // ==============================================================
         controlPanel.getBtnSpawn().setOnAction(e -> {
             int count = controlPanel.getSpinnerSpawnCount().getValue();
             String type = controlPanel.getComboVehicleType().getValue();
@@ -78,26 +81,25 @@ public class MainLauncher extends Application {
                 for (int i = 0; i < count; i++) {
                     String finalType = type.equalsIgnoreCase("All") ? rawTypes[rand.nextInt(rawTypes.length)] : type.toUpperCase();
 
-                    // 1. CHỌN NGÃ TƯ XUẤT PHÁT NGẪU NHIÊN
-                    IntersectionNode start = nodes.get(rand.nextInt(nodes.size()));
+                    // SỬA Ở ĐÂY: KHÔNG RANDOM NỮA, LUÔN LẤY NODE ĐẦU TIÊN (Index 0)
+                    // (Đường grid 0, 0 - thường là góc trên cùng bên trái màn hình)
+                    IntersectionNode start = nodes.get(0);
 
-                    // 2. LỌC RA CÁC NGÃ TƯ HÀNG XÓM (Sát vách) ĐỂ ÉP XE CHẠY DỌC ĐƯỜNG NHỰA
+                    // Lọc ra các ngã tư hàng xóm để xe bắt đầu chạy
                     java.util.List<IntersectionNode> neighbors = new java.util.ArrayList<>();
                     for (IntersectionNode n : nodes) {
                         int dx = Math.abs(n.getGridX() - start.getGridX());
                         int dy = Math.abs(n.getGridY() - start.getGridY());
-                        // Chỉ lấy những node cách đúng 1 ô (theo phương ngang hoặc dọc)
                         if ((dx == 1 && dy == 0) || (dx == 0 && dy == 1)) {
                             neighbors.add(n);
                         }
                     }
 
-                    // 3. CHỐT MỤC TIÊU LÀ MỘT TRONG SỐ CÁC HÀNG XÓM
+                    // Chốt mục tiêu đầu tiên (có thể random chọn đường rẽ đầu tiên)
                     IntersectionNode target;
                     if (!neighbors.isEmpty()) {
                         target = neighbors.get(rand.nextInt(neighbors.size()));
                     } else {
-                        // Nếu lỡ đẻ ra ở đường cụt thì ép nó target lại chính nó tạm thời
                         target = start;
                     }
 

@@ -11,32 +11,17 @@ public class IntersectionNode {
         this.gridY = gridY;
     }
 
-    public int getId() {
-        return id;
-    }
+    public int getId() { return id; }
+    public void setId(int id) { this.id = id; }
 
-    public void setId(int id) {
-        this.id = id;
-    }
+    public int getGridX() { return gridX; }
+    public void setGridX(int gridX) { this.gridX = gridX; }
 
-    public int getGridX() {
-        return gridX;
-    }
+    public int getGridY() { return gridY; }
+    public void setGridY(int gridY) { this.gridY = gridY; }
 
-    public void setGridX(int gridX) {
-        this.gridX = gridX;
-    }
-
-    public int getGridY() {
-        return gridY;
-    }
-
-    public void setGridY(int gridY) {
-        this.gridY = gridY;
-    }
-
+    // Khoảng cách mỗi ngã tư là 320 pixel, tâm ngã tư cách lề 160 pixel
     public double getWorldX() {
-        // Áp dụng đúng công thức: offset(160) + grid * step(320)
         return 160.0 + (this.gridX * 320.0);
     }
 
