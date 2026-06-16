@@ -1,88 +1,98 @@
-package UI;
+package UI; // Nếu ông để file này ở package khác thì nhớ đổi lại dòng này nhé
 
-import MapSystem.map.MapLoader;
-import MapSystem.map.RoadGraph;
-import MapSystem.light.TrafficController;
-import VehicleSystem.vehicle.VehicleManager;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
+import MapSystem.map.MapLoader;
+import MapSystem.map.RoadGraph;
+import VehicleSystem.vehicle.VehicleManager;
+// Nhớ import ControlPanel nếu file đó đang nằm ở traffic.components
+// import traffic.components.ControlPanel;
+
 public class MainLauncher extends Application {
 
-    // 1. KHAI BÁO CÁC CORE THÀNH PHẦN (Cơ sở dữ liệu tĩnh & Bộ máy quản lý)
-    public static RoadGraph roadGraph;
-    public static VehicleManager vehicleManager;
-    public static TrafficController trafficController;
-
-    // 2. KHAI BÁO THÀNH PHẦN GIAO DIỆN (UI)
-    private SimulationCanvas simulationCanvas;
-    private ControlPanel controlPanel;
-
-    // Trạng thái tạm dừng của ứng dụng
-    public static boolean isPaused = false;
+    private AnimationTimer gameLoop;
 
     @Override
     public void start(Stage primaryStage) {
-        try {
-            // BƯỚC 1: KHỞI TẠO BỘ MÁY (ENGINE) & MAP TĨNH
-            // Gọi thợ xây tạo map tĩnh 3x3 nạp vào bộ nhớ đồ thị
-            roadGraph = MapLoader.loadMap();
+        // =======================================================
+        // 1. KHỞI TẠO DỮ LIỆU LÕI (Mặt Trận Ngầm)
+        // =======================================================
+        RoadGraph map = MapLoader.loadMap();
+        VehicleManager vehicleManager = new VehicleManager(map);
 
-            // Khởi tạo các bộ quản lý xe và đèn tín hiệu
-            vehicleManager = new VehicleManager();
-            trafficController = new TrafficController();
+        // =======================================================
+        // 2. KHỞI TẠO GIAO DIỆN (Mặt Trận Nổi)
+        // =======================================================
+        // Canvas rộng 1090px, chừa đúng 190px cho Sidebar của ông là khít rịt 1280px
+        SimulationCanvas canvas = new SimulationCanvas(1090, 800, map, vehicleManager);
+        ControlPanel controlPanel = new ControlPanel();
 
-            // BƯỚC 2: KHỞI TẠO GIAO DIỆN (UI PARTS)
-            simulationCanvas = new SimulationCanvas();
-            controlPanel = new ControlPanel();
+        BorderPane root = new BorderPane();
+        root.setCenter(canvas);
+        root.setRight(controlPanel); // Ốp Sidebar sang lề phải
 
-            // BƯỚC 3: LẮP RÁP BỐ CỤC MÀN HÌNH (LAYOUT)
-            BorderPane root = new BorderPane();
-            root.setLeft(controlPanel);       // Nút bấm, thanh công cụ nằm bên trái
-            root.setCenter(simulationCanvas); // Sa bàn bản đồ nằm chính giữa làm trung tâm
+        // =======================================================
+        // 3. GAME LOOP - TRÁI TIM ĐỒ HỌA
+        // =======================================================
+        gameLoop = new AnimationTimer() {
+            @Override
+            public void handle(long now) {
+                vehicleManager.updateAll(); // Cập nhật logic vật lý
+                canvas.render();            // Họa sĩ vẽ khung hình mới
+            }
+        };
 
-            // Tạo Scene (Cửa sổ chứa Layout), kích thước tùy ông chỉnh
-            Scene scene = new Scene(root, 1280, 720);
+        // =======================================================
+        // 4. BẮT SỰ KIỆN NÚT BẤM TỪ CONTROL PANEL
+        // =======================================================
 
-            primaryStage.setTitle("Traffic Simulation - Clean Architecture Framework");
-            primaryStage.setScene(scene);
+        // --- Nút Spawn Xe ---
+        controlPanel.getBtnSpawn().setOnAction(e -> {
+            // Lấy dữ liệu từ giao diện của ông
+            String selectedType = controlPanel.getComboVehicleType().getValue();
+            int spawnCount = controlPanel.getSpinnerSpawnCount().getValue();
 
-            // BƯỚC 4: KÍCH HOẠT NHỊP TIM HỆ THỐNG (GAME LOOP)
-            AnimationTimer gameLoop = new AnimationTimer() {
-                @Override
-                public void handle(long now) {
-                    // Cứ 1/60 giây, hàm này sẽ bị gõ đầu gọi chạy một lần!
+            // Nhả xe theo đúng số lượng ông chỉnh trong Spinner
+            for (int i = 0; i < spawnCount; i++) {
+                // Tạm thời gọi spawn mặc định. Sau này sẽ nâng cấp truyền selectedType vào đây!
+                vehicleManager.spawnVehicle(selectedType);
+            }
+        });
 
-                    // Nhịp 1: Cập nhật Logic chạy ngầm (Chỉ chạy khi không bấm Tạm Dừng)
-                    if (!isPaused) {
-                        // Ép tất cả các xe tính toán vị trí, check va chạm, bẻ lái
-                        vehicleManager.updateAllMovement();
+        // --- Nút Pause (Tạm dừng mô phỏng) ---
+        controlPanel.getBtnPause().setOnAction(e -> {
+            gameLoop.stop(); // Đóng băng thời gian
+            controlPanel.getBtnPause().setDisable(true);   // Khóa nút Pause
+            controlPanel.getBtnResume().setDisable(false); // Mở nút Resume
+        });
 
-                        // Ép bộ đếm thời gian đèn giao thông đếm lùi
-                        trafficController.updateLights();
-                    }
+        // --- Nút Resume (Chạy tiếp) ---
+        controlPanel.getBtnResume().setOnAction(e -> {
+            gameLoop.start(); // Chạy lại thời gian
+            controlPanel.getBtnResume().setDisable(true);  // Khóa nút Resume
+            controlPanel.getBtnPause().setDisable(false);  // Mở lại nút Pause
+        });
 
-                    // Nhịp 2: Gọi họa sĩ vẽ lại giao diện dựa trên dữ liệu mới nhất
-                    simulationCanvas.draw();
-                }
-            };
+        // (Các nút Add Road, Remove, Zoom... giữ nguyên, lát code logic sau)
 
-            // Bấm nút đề nổ Động cơ vòng lặp!
-            gameLoop.start();
+        // =======================================================
+        // 5. HIỂN THỊ CỬA SỔ
+        // =======================================================
+        Scene scene = new Scene(root, 1280, 800);
+        primaryStage.setTitle("Mô Phỏng Giao Thông - Hệ Thống Map & Làn Xe Đỉnh Cao");
+        primaryStage.setScene(scene);
+        primaryStage.setResizable(false); // Khóa form, chống kéo giãn làm vỡ layout
+        primaryStage.show();
 
-            // Hiển thị cửa sổ lên màn hình máy tính
-            primaryStage.show();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        // Bóp cò khởi động vòng lặp!
+        gameLoop.start();
     }
 
     public static void main(String[] args) {
-        // Lệnh kích hoạt JavaFX khởi chạy hàm start() ở trên
         launch(args);
     }
 }

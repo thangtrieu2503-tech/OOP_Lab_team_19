@@ -5,7 +5,7 @@ import MapSystem.map.Intersection;
 import MapSystem.math.Vector2D;
 import java.util.List;
 
-public class Vehicle {
+public abstract class Vehicle { // Nên để abstract vì ông có các class con như Car, Bus...
     // --------------------------------------------------------
     // 1. THUỘC TÍNH VỊ TRÍ & HƯỚNG ĐI (Toán học Vector)
     // --------------------------------------------------------
@@ -13,6 +13,14 @@ public class Vehicle {
     private double y;
     private double dirX;
     private double dirY;
+
+    // --------------------------------------------------------
+    // MỚI: KÍCH THƯỚC XE VÀ ĐỘ LỆCH LÀN (Phục vụ UI và chia làn)
+    // --------------------------------------------------------
+    protected double width;
+    protected double length;
+    protected double laneOffsetX = 0;
+    protected double laneOffsetY = 0;
 
     // --------------------------------------------------------
     // 2. THUỘC TÍNH VẬT LÝ & ĐỘNG CƠ
@@ -33,32 +41,16 @@ public class Vehicle {
     // --------------------------------------------------------
     private boolean isRequestedToYield = false;
 
-    private double width;  // Chiều rộng xe
-    private double length; // Chiều dài xe
+    // ========================================================
+    // CONSTRUCTOR (Đã bổ sung width và length)
+    // ========================================================
+    private Intersection previousNode;
 
-    // Cập nhật Constructor thêm width và length
     public Vehicle(double startX, double startY, double width, double length, double baseMaxSpeed, DrivingStrategy driver) {
         this.x = startX;
         this.y = startY;
         this.width = width;
         this.length = length;
-        this.baseMaxSpeed = baseMaxSpeed;
-        this.maxSpeed = baseMaxSpeed;
-        this.speed = 0;
-        this.acceleration = 0;
-        this.driver = driver;
-    }
-
-    // Thêm Getters cho họa sĩ và radar xài
-    public double getWidth() { return width; }
-    public double getLength() { return length; }
-
-    // ========================================================
-    // CONSTRUCTOR
-    // ========================================================
-    public Vehicle(double startX, double startY, double baseMaxSpeed, DrivingStrategy driver) {
-        this.x = startX;
-        this.y = startY;
         this.baseMaxSpeed = baseMaxSpeed;
         this.maxSpeed = baseMaxSpeed;
         this.speed = 0;
@@ -76,6 +68,16 @@ public class Vehicle {
         }
         // 2. Động cơ vật lý thực thi lệnh
         updatePhysics();
+    }
+
+    // Hàm này để Manager gọi vào để lưu lại ngã tư vừa đi qua
+    public void setPreviousNode(Intersection previousNode) {
+        this.previousNode = previousNode;
+    }
+
+    // Hàm này để Manager gọi vào để kiểm tra xem có phải ngã tư vừa rồi không
+    public Intersection getPreviousNode() {
+        return this.previousNode;
     }
 
     // ========================================================
@@ -105,32 +107,61 @@ public class Vehicle {
     }
 
     // ========================================================
-    // HỆ THỐNG ĐIỀU HƯỚNG VECTOR
+    // HỆ THỐNG ĐIỀU HƯỚNG VECTOR (Đã ép xe hướng vào làn)
     // ========================================================
-    // Nhận mục tiêu mới và tự động bẻ vô lăng chĩa về mục tiêu đó
     public void setTargetNode(Intersection targetNode) {
         this.targetNode = targetNode;
         recalculateDirection();
     }
 
-    // Cập nhật lại góc lái bằng Toán học Vector
+    public void setLaneOffset(double ox, double oy) {
+        this.laneOffsetX = ox;
+        this.laneOffsetY = oy;
+        recalculateDirection(); // Tính lại góc lái ngay khi bị ép sang làn khác
+    }
+
     private void recalculateDirection() {
         if (targetNode == null) return;
 
-        Vector2D currentPos = this.getPosition();
-        Vector2D targetPos = targetNode.getPosition();
+        double currentCenterX = this.x - laneOffsetX;
+        double currentCenterY = this.y - laneOffsetY;
 
-        Vector2D direction = targetPos.subtract(currentPos);
-        Vector2D normalizedDir = direction.normalize();
+        double dx = targetNode.getPosition().getX() - currentCenterX;
+        double dy = targetNode.getPosition().getY() - currentCenterY;
 
-        this.dirX = normalizedDir.getX();
-        this.dirY = normalizedDir.getY();
+        // Vẫn dùng trò "Khử sai số" để xe thẳng tắp
+        if (Math.abs(dx) > Math.abs(dy)) {
+            this.dirX = Math.signum(dx);
+            this.dirY = 0.0;
+        } else {
+            this.dirX = 0.0;
+            this.dirY = Math.signum(dy);
+        }
+
+        // ========================================================
+        // 🛠️ DẠT SANG LÀN BÊN PHẢI (Luật VN)
+        // ========================================================
+        double laneDistance = 40.0;
+
+        // Công thức xoay 90 độ sang PHẢI:
+        this.laneOffsetX = -this.dirY * laneDistance;
+        this.laneOffsetY = this.dirX * laneDistance;
+
+        this.x = currentCenterX + this.laneOffsetX;
+        this.y = currentCenterY + this.laneOffsetY;
     }
 
-    // Cảm biến check tới đích (Sai số < 5 pixel)
+    // Cảm biến check tới đích (Đã tính kèm offset)
     public boolean hasReachedTarget() {
         if (targetNode == null) return false;
-        return this.getPosition().distanceTo(targetNode.getPosition()) < 5.0;
+
+        // Đích đến thực sự = Tâm ngã tư + Độ dạt làn trái
+        Vector2D realTarget = new Vector2D(
+                targetNode.getPosition().getX() + laneOffsetX,
+                targetNode.getPosition().getY() + laneOffsetY
+        );
+
+        return this.getPosition().distanceTo(realTarget) < 5.0;
     }
 
     // ========================================================
@@ -151,12 +182,11 @@ public class Vehicle {
     public void resetYieldFlag() { this.isRequestedToYield = false; }
 
     public void changeLane() {
-        // Logic tịnh tiến vector vuông góc để dạt xe sang bên cạnh sẽ được bổ sung sau
         System.out.println("Xe đang đánh lái chuyển làn...");
     }
 
     // ========================================================
-    // GETTERS & SETTERS CƠ BẢN
+    // GETTERS & SETTERS BỔ SUNG CHO CANVAS VẼ ĐỒ HỌA
     // ========================================================
     public void setAcceleration(double acceleration) { this.acceleration = acceleration; }
     public void setMaxSpeed(double maxSpeed) { this.maxSpeed = maxSpeed; }
@@ -165,4 +195,22 @@ public class Vehicle {
     public Intersection getTargetNode() { return this.targetNode; }
     public Vector2D getPosition() { return new Vector2D(this.x, this.y); }
     public double getSpeed() { return this.speed; }
+
+    // Mấy hàm này bắt buộc phải có để class Canvas của ông gọi
+    public double getX() { return this.x; }
+    public double getY() { return this.y; }
+    public double getWidth() { return this.width; }
+    public double getLength() { return this.length; }
+
+    // Tính góc vô lăng dựa trên dirX, dirY để vẽ xoay xe
+    public double getAngle() {
+        return Math.toDegrees(Math.atan2(this.dirY, this.dirX));
+    }
+
+    // Ép kiểu tên Class phục vụ cho switch-case lấy màu/sprite
+    public String getType() {
+        String className = this.getClass().getSimpleName().toUpperCase();
+        if (className.equals("FIRETRUCK")) return "FIRE_TRUCK";
+        return className;
+    }
 }

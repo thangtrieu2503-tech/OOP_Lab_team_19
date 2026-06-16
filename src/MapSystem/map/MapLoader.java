@@ -9,9 +9,9 @@ public class MapLoader {
 
         int rows = 3;
         int cols = 3;
-        double spacing = 600.0; // Khoảng cách ngã tư phải rộng ra vì đường 6 làn rất to
-        double startX = 200.0;
-        double startY = 200.0;
+        double spacing = 300.0; // Thu nhỏ khoảng cách lại (Cũ là 600)
+        double startX = 275.0;  // Lùi vào góc trái
+        double startY = 100.0;  // Kéo lên trên
 
         Intersection[][] grid = new Intersection[rows][cols];
 
