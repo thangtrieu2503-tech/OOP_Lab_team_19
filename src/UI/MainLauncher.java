@@ -1,8 +1,8 @@
-package traffic.main;
+package UI;
 
-import Map.map.MapLoader;
-import Map.map.RoadGraph;
-import Map.trafficLight.TrafficController;
+import MapSystem.map.MapLoader;
+import MapSystem.map.RoadGraph;
+import MapSystem.light.TrafficController;
 import VehicleSystem.vehicle.VehicleManager;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
