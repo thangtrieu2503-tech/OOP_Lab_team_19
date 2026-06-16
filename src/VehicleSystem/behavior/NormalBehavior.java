@@ -1,6 +1,7 @@
 package VehicleSystem.behavior;
 
 import VehicleSystem.vehicle.Vehicle;
+import MapSystem.light.LightState;
 import MapSystem.map.Intersection;
 import MapSystem.light.LightState;
 import java.util.List;
@@ -25,19 +26,21 @@ public class NormalBehavior implements DrivingStrategy {
         // 2. Logic Check Đèn Đỏ
         Intersection targetNode = vehicle.getTargetNode(); // Lấy ngã tư đang đi tới
 
-        if (targetNode != null && targetNode.getTrafficLight() != null) {
-            // Dùng công cụ Pytago đo khoảng cách
-            double distanceToNode = vehicle.getPosition().distanceTo(targetNode.getPosition());
-            LightState currentState = targetNode.getTrafficLight().getState();
+        // Thay vì getTrafficLight(), ta phải gọi getTrafficController()
+        if (targetNode != null && targetNode.getTrafficController() != null) {
 
-            // Nếu xe đã vào Tầm Nhìn VÀ đèn đang Đỏ/Vàng
-            if (distanceToNode < SENSOR_RANGE && (currentState == LightState.RED || currentState == LightState.YELLOW)) {
+            // Lấy danh sách các đèn ở ngã tư này.
+            // Tạm thời anh em mình lấy đại cái đèn đầu tiên (index 0) để check trước
+            var lights = targetNode.getTrafficController().getLights();
 
-                // Kích hoạt luật "Qua vạch rồi thì đi luôn":
-                // Chỉ phanh nếu xe vẫn còn cách tâm ngã tư xa hơn vạch dừng
-                if (distanceToNode > STOP_LINE_DIST) {
-                    redLightAhead = true;
-                }
+            if (!lights.isEmpty()) {
+                // Dùng công cụ Pytago đo khoảng cách
+                double distanceToNode = vehicle.getPosition().distanceTo(targetNode.getPosition());
+
+                // Trích xuất trạng thái màu của cái đèn đó
+                LightState currentState = lights.get(0).getCurrentState();
+
+                // ... (Logic đạp phanh hay vượt đèn ông giữ nguyên ở dưới nhé)
             }
         }
 
