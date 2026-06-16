@@ -1,4 +1,4 @@
-package UI; // Nếu ông để file này ở package khác thì nhớ đổi lại dòng này nhé
+package UI; 
 
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
@@ -78,6 +78,31 @@ public class MainLauncher extends Application {
         });
 
         // (Các nút Add Road, Remove, Zoom... giữ nguyên, lát code logic sau)
+
+        // =======================================================
+        // ĐẤU NỐI SỰ KIỆN ZOOM TỪ CONTROL PANEL SANG CANVAS
+        // =======================================================
+        
+        // Bấm nút Zoom In trên thanh Sidebar -> Gọi canvas phóng to
+        controlPanel.getBtnZoomIn().setOnAction(e -> {
+            canvas.zoomIn();
+        });
+
+        // Bấm nút Zoom Out trên thanh Sidebar -> Gọi canvas thu nhỏ
+        controlPanel.getBtnZoomOut().setOnAction(e -> {
+            canvas.zoomOut();
+        });
+
+        // ĐẤU NỐI SỰ KIỆN CHUYỂN CHẾ ĐỘ ĐỒ HỌA XE CỘ
+        // Khi bấm nút "Rectangle Mode" -> Gọi canvas bật hình hộp (true)
+        controlPanel.getBtnRectangle().setOnAction(e -> {
+            canvas.setRectangleMode(true);
+        });
+
+        // Khi bấm nút "Image Mode" -> Gọi canvas bật ảnh thật (false)
+        controlPanel.getBtnImage().setOnAction(e -> {
+            canvas.setRectangleMode(false);
+        });
 
         // =======================================================
         // 5. HIỂN THỊ CỬA SỔ
