@@ -6,7 +6,7 @@ import java.util.List;
 public class EmergencyBehavior implements DrivingStrategy {
 
     // Hệ số ưu tiên: Chạy lố 50% công suất, đạp ga mạnh
-    private final double SPEED_MULTIPLIER = 1.5;
+    private final double SPEED_MULTIPLIER = 1.2;
     private final double ACCEL_MULTIPLIER = 1.2;
 
     @Override
