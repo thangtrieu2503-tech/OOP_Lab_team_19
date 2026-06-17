@@ -36,6 +36,16 @@ public abstract class Vehicle {
     protected double[] laneDistances = {14.0, 40.0, 66.0};
     protected int currentLane = 2; // Mặc định sinh ra ở làn số 2
 
+    // --- THÊM BIẾN CHUYỂN LÀN MƯỢT ---
+    protected double targetLaneOffsetX = 0;
+    protected double targetLaneOffsetY = 0;
+    protected double laneChangeSpeed = 0.8; // Tốc độ trượt sang làn mới (càng to trượt càng nhanh)
+
+    // --- THÊM BIẾN ĐỂ BO CUA TỪ XA ---
+    protected double smoothDirX = 0;
+    protected double smoothDirY = 0;
+    protected double corneringSpeed = 0.15; // Tốc độ xoay vô lăng (Càng nhỏ ôm cua càng rộng)
+
     // --------------------------------------------------------
     // 2. THUỘC TÍNH VẬT LÝ & ĐỘNG CƠ
     // --------------------------------------------------------
@@ -118,38 +128,57 @@ public abstract class Vehicle {
     }
 
     // ========================================================
-    // LÕI VẬT LÝ CƠ BẢN + LOGIC BẺ LÁI MƯỢT
+    // LÕI VẬT LÝ CƠ BẢN + LOGIC ĐI CHÉO CỰC CHUẨN (Point-to-Point)
     // ========================================================
     private void updatePhysics() {
         speed += acceleration;
-
-        if (speed <= 0) {
-            speed = 0;
-            if (acceleration < 0) acceleration = 0;
-        }
-
-        if (speed > maxSpeed) {
-            speed = maxSpeed;
-        }
+        if (speed <= 0) { speed = 0; if (acceleration < 0) acceleration = 0; }
+        if (speed > maxSpeed) speed = maxSpeed;
 
         if (speed > 0 && targetNode != null) {
-            double targetX = targetNode.getPosition().getX() + laneOffsetX;
-            double targetY = targetNode.getPosition().getY() + laneOffsetY;
+            double moveX = 0;
+            double moveY = 0;
 
-            double targetAngle = Math.atan2(targetY - this.y, targetX - this.x);
-            double angleDiff = targetAngle - this.currentAngle;
+            // Tốc độ đánh lái chéo (Bằng speed thì góc là 45 độ, nhân 0.8 thì góc thoai thoải đẹp hơn)
+            double lateralSpeed = speed * 0.8;
 
-            while (angleDiff > Math.PI) angleDiff -= 2 * Math.PI;
-            while (angleDiff < -Math.PI) angleDiff += 2 * Math.PI;
+            if (Math.abs(this.dirX) > 0) {
+                // --- ĐANG TRÊN ĐƯỜNG NGANG (Trục X) ---
+                moveX = this.dirX * speed;
 
-            if (Math.abs(angleDiff) > turnSpeed) {
-                this.currentAngle += Math.signum(angleDiff) * turnSpeed;
-            } else {
-                this.currentAngle = targetAngle;
+                // Tọa độ Y lý tưởng của làn đường (Đường Ray)
+                double idealY = targetNode.getPosition().getY() + this.targetLaneOffsetY;
+                double distToIdealY = idealY - this.y;
+
+                // Nếu đang lệch khỏi làn -> Đi chéo để nhập làn
+                if (Math.abs(distToIdealY) > lateralSpeed) {
+                    moveY = Math.signum(distToIdealY) * lateralSpeed;
+                } else {
+                    moveY = distToIdealY; // Khớp chuẩn xác vào vạch (Không bị run xe)
+                }
+            } else if (Math.abs(this.dirY) > 0) {
+                // --- ĐANG TRÊN ĐƯỜNG DỌC (Trục Y) ---
+                moveY = this.dirY * speed;
+
+                // Tọa độ X lý tưởng của làn đường
+                double idealX = targetNode.getPosition().getX() + this.targetLaneOffsetX;
+                double distToIdealX = idealX - this.x;
+
+                if (Math.abs(distToIdealX) > lateralSpeed) {
+                    moveX = Math.signum(distToIdealX) * lateralSpeed;
+                } else {
+                    moveX = distToIdealX; // Khớp chuẩn xác vào vạch
+                }
             }
 
-            this.x += Math.cos(this.currentAngle) * speed;
-            this.y += Math.sin(this.currentAngle) * speed;
+            // Di chuyển xe
+            this.x += moveX;
+            this.y += moveY;
+
+            // Chốt góc quay lập tức: Đầu xe luôn nhìn chính xác theo hướng vừa dịch chuyển
+            if (moveX != 0 || moveY != 0) {
+                this.currentAngle = Math.atan2(moveY, moveX);
+            }
         }
     }
 
@@ -158,6 +187,10 @@ public abstract class Vehicle {
     // ========================================================
     public void setTargetNode(Intersection targetNode) {
         this.targetNode = targetNode;
+
+        // --- LOGIC RANDOM LÀN MỚI KHI RẼ ---
+        this.currentLane = new java.util.Random().nextInt(laneDistances.length);
+
         recalculateDirection();
     }
 
@@ -170,11 +203,9 @@ public abstract class Vehicle {
     private void recalculateDirection() {
         if (targetNode == null) return;
 
-        double currentCenterX = this.x - laneOffsetX;
-        double currentCenterY = this.y - laneOffsetY;
-
-        double dx = targetNode.getPosition().getX() - currentCenterX;
-        double dy = targetNode.getPosition().getY() - currentCenterY;
+        // Xác định hướng đường tổng quát cực kỳ dứt khoát
+        double dx = targetNode.getPosition().getX() - this.x;
+        double dy = targetNode.getPosition().getY() - this.y;
 
         if (Math.abs(dx) > Math.abs(dy)) {
             this.dirX = Math.signum(dx);
@@ -185,39 +216,50 @@ public abstract class Vehicle {
         }
 
         updateLaneOffset();
-
-        this.x = currentCenterX + this.laneOffsetX;
-        this.y = currentCenterY + this.laneOffsetY;
     }
 
     private void updateLaneOffset() {
         double laneDistance = laneDistances[this.currentLane];
-        this.laneOffsetX = -this.dirY * laneDistance;
-        this.laneOffsetY = this.dirX * laneDistance;
+        // Thay vì ép tọa độ thực, ta chỉ set tọa độ mục tiêu
+        this.targetLaneOffsetX = -this.dirY * laneDistance;
+        this.targetLaneOffsetY = this.dirX * laneDistance;
+
+        // Nếu xe mới sinh ra (chưa có offset), cho phép nhảy thẳng vào làn luôn
+        if (this.laneOffsetX == 0 && this.laneOffsetY == 0) {
+            this.laneOffsetX = this.targetLaneOffsetX;
+            this.laneOffsetY = this.targetLaneOffsetY;
+        }
     }
 
     public boolean hasReachedTarget() {
         if (targetNode == null) return false;
 
-        // Điểm neo thực tế trong làn đường
+        // Neo vào đúng tọa độ của làn tiếp theo
         Vector2D realTarget = new Vector2D(
-                targetNode.getPosition().getX() + laneOffsetX,
-                targetNode.getPosition().getY() + laneOffsetY
+                targetNode.getPosition().getX() + this.targetLaneOffsetX,
+                targetNode.getPosition().getY() + this.targetLaneOffsetY
         );
 
-        return this.getPosition().distanceTo(realTarget) < 5.0;
+        // Chạm mốc 90 mét là bắt đầu vạch đường chéo qua ngã tư
+        return this.getPosition().distanceTo(realTarget) < 90.0;
     }
 
     // ========================================================
     // HỆ THỐNG GIAO TIẾP & CHUYỂN LÀN
     // ========================================================
-    public void honkAt(Vehicle frontCar) { if (frontCar != null) frontCar.receiveHonk(); }
     public void receiveHonk() { this.isRequestedToYield = true; }
-    public boolean needsToYield() { return isRequestedToYield; }
-    public void resetYieldFlag() { this.isRequestedToYield = false; }
+    public boolean isRequestedToYield() { return this.isRequestedToYield; }
+    public void setRequestedToYield(boolean requestedToYield) { this.isRequestedToYield = requestedToYield; }
 
     public void changeLane(int targetLane) {
         if (targetLane >= 0 && targetLane < laneDistances.length) {
+            // --- KHÓA VÔ LĂNG CHỐNG LẮC ---
+            double dx = this.targetLaneOffsetX - this.laneOffsetX;
+            double dy = this.targetLaneOffsetY - this.laneOffsetY;
+            if (Math.sqrt(dx * dx + dy * dy) > 1.0) {
+                return; // Đang bận chuyển làn, từ chối lệnh mới!
+            }
+
             this.currentLane = targetLane;
             updateLaneOffset();
         }

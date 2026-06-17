@@ -2,8 +2,7 @@ package VehicleSystem.vehicle;
 
 import MapSystem.map.Intersection;
 import MapSystem.map.RoadGraph;
-import VehicleSystem.behavior.EmergencyBehavior;
-import VehicleSystem.behavior.NormalBehavior;
+import VehicleSystem.behavior.*;
 import VehicleSystem.vehicle.type.*;
 
 import java.util.ArrayList;
@@ -31,13 +30,28 @@ public class VehicleManager {
 
         Iterator<Vehicle> iterator = activeVehicles.iterator();
 
+        // 🚨 1. THÊM CỜ KIỂM TRA XE CỨU THƯƠNG
+        boolean hasEmergencyVehicle = false;
+
         while (iterator.hasNext()) {
             Vehicle v = iterator.next();
             v.update(activeVehicles);
 
+            // 🚨 2. QUÉT XEM CÓ XE ƯU TIÊN TRÊN BẢN ĐỒ KHÔNG
+            if (v.getType().equals("AMBULANCE") || v.getType().equals("FIRE_TRUCK")) {
+                hasEmergencyVehicle = true;
+            }
+
             if (v.hasReachedTarget()) {
                 assignNextTarget(v);
             }
+        }
+
+        // 🚨 3. BẬT / TẮT CÒI TỰ ĐỘNG SAU KHI QUÉT XONG
+        if (hasEmergencyVehicle) {
+            UI.SoundManager.playSiren();
+        } else {
+            UI.SoundManager.stopSiren();
         }
     }
 
@@ -93,11 +107,24 @@ public class VehicleManager {
         double sy = startNode.getPosition().getY();
 
         switch (type) {
-            case "Motorbike": newVehicle = new Motorbike(sx, sy, 20, 10, 5.0, new NormalBehavior()); break;
-            case "Ambulance": newVehicle = new Ambulance(sx, sy, 40, 20, 3.0, new EmergencyBehavior()); break;
-            case "Fire Truck": newVehicle = new FireTruck(sx, sy, 50, 25, 4.0, new EmergencyBehavior()); break;
-            case "Bus":        newVehicle = new Bus(sx, sy, 60, 30, 3.5, new NormalBehavior()); break;
-            default:           newVehicle = new Car(sx, sy, 40, 20, 5.0, new NormalBehavior()); break;
+            case "Motorbike":
+                // Motorbike lúc nào sinh ra cũng được gán ngẫu nhiên 1 trong 2 tính cách
+                newVehicle = new Motorbike(sx, sy, 7, 18, 0.7, new NormalBehavior());
+                break;
+            case "Ambulance":
+                newVehicle = new Ambulance(sx, sy, 16, 38, 1.0, new EmergencyBehavior());
+                break;
+            case "Fire Truck":
+                newVehicle = new FireTruck(sx, sy, 18, 40, 1.0, new EmergencyBehavior());
+                break;
+            case "Bus":
+                // Bus to xác nên cho ngoan ngoãn thôi, không nên trẻ trâu
+                newVehicle = new Bus(sx, sy, 18, 48, 1.0, random.nextBoolean() ? new AggressiveBehavior() : new NormalBehavior());
+                break;
+            default: // Car
+                // Car cũng gán ngẫu nhiên 1 trong 2 tính cách
+                newVehicle = new Car(sx, sy, 15, 35, 1.0, random.nextBoolean() ? new AggressiveBehavior() : new NormalBehavior());
+                break;
         }
 
         if (newVehicle != null) {

@@ -1,11 +1,13 @@
 package VehicleSystem.vehicle.type;
 
+import VehicleSystem.behavior.DrivingStrategy;
 import VehicleSystem.vehicle.Vehicle;
-import VehicleSystem.behavior.NormalBehavior;
 
 public class Car extends Vehicle {
-    public Car(double startX, double startY, int i, int i1, double v, NormalBehavior normalBehavior) {
-        // Rộng 20, Dài 40
-        super(startX, startY, 16.0, 36.0, 1.0, new NormalBehavior());
+
+    // 🚨 Đã sửa chữ NormalBehavior thành DrivingStrategy ở đây
+    public Car(double startX, double startY, double width, double length, double baseMaxSpeed, DrivingStrategy driver) {
+        // 🚨 Chỉ truyền đúng chữ "driver" vào super, KHÔNG có chữ "new" gì ở đây cả
+        super(startX, startY, width, length, baseMaxSpeed, driver);
     }
 }
