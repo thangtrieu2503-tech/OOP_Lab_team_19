@@ -80,8 +80,6 @@ public class MapLoader {
                 }
             }
         }
-
-        System.out.println("MapLoader ko lỗi nhé - Đã cắm đèn thành công (Và đã dọn dẹp 4 góc đường)!");
         return graph;
     }
 }

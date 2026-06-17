@@ -121,7 +121,7 @@ public class MainLauncher extends Application {
         // 5. HIỂN THỊ CỬA SỔ
         // =======================================================
         Scene scene = new Scene(root, 1280, 800);
-        primaryStage.setTitle("Mô Phỏng Giao Thông - Hệ Thống Map & Làn Xe Đỉnh Cao");
+        primaryStage.setTitle("Traffic Simulation");
         primaryStage.setScene(scene);
         primaryStage.setResizable(false);
         primaryStage.show();

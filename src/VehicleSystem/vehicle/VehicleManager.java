@@ -25,6 +25,9 @@ public class VehicleManager {
     // VÒNG LẶP CẬP NHẬT
     // ==========================================
     public void updateAll() {
+        // 💀 THẦN CHẾT DỌN DẸP: Quét bay màu những xe bị dán bùa isDead (quá 5s)
+        activeVehicles.removeIf(v -> v.isDead);
+
         Iterator<Vehicle> iterator = activeVehicles.iterator();
 
         while (iterator.hasNext()) {

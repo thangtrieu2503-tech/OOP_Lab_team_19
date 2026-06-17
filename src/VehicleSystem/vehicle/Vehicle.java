@@ -75,6 +75,12 @@ public abstract class Vehicle {
     }
 
     // ========================================================
+    // BIẾN PHỤC VỤ XÓA XE KẸT (Đếm 5s)
+    // ========================================================
+    public long stuckTime = 0;
+    public boolean isDead = false;
+
+    // ========================================================
     // LUỒNG CHẠY CHÍNH (Game Loop gọi hàm này)
     // ========================================================
     public void update(List<Vehicle> allVehicles) {
