@@ -2,8 +2,9 @@ package VehicleSystem.vehicle;
 
 import MapSystem.map.Intersection;
 import MapSystem.map.RoadGraph;
+import VehicleSystem.behavior.EmergencyBehavior;
+import VehicleSystem.behavior.NormalBehavior;
 import VehicleSystem.vehicle.type.*;
-import VehicleSystem.behavior.*;
 
 import java.util.ArrayList;
 import java.util.Iterator;

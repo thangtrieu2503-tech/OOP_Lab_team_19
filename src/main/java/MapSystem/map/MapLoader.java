@@ -1,8 +1,6 @@
 package MapSystem.map;
 
 import MapSystem.math.Vector2D;
-
-// ====== THÊM IMPORT ĐỂ NHẬN DIỆN HỆ THỐNG ĐÈN CỦA ÔNG THẮNG ======
 import MapSystem.light.TrafficController;
 import MapSystem.light.DelayCountdownTrafficLight;
 import MapSystem.light.LightState;
@@ -12,16 +10,17 @@ public class MapLoader {
     public static RoadGraph loadMap() {
         RoadGraph graph = new RoadGraph();
 
-        int rows = 3;
-        int cols = 3;
-        double spacing = 300.0; // Thu nhỏ khoảng cách lại (Cũ là 600)
-        double startX = 275.0;  // Lùi vào góc trái
-        double startY = 100.0;  // Kéo lên trên
+        // 🛠️ CHỈNH QUY MÔ MAP Ở ĐÂY
+        int rows = 3; // 3 dọc
+        int cols = 4; // 4 ngang
+        double spacing = 450.0; // Kéo giãn khoảng cách giữa các ngã tư ra gấp đôi (Cũ là 300)
+        double startX = 150.0;  // Xích tọa độ đầu tiên lùi vào một chút cho cân
+        double startY = 150.0;
 
         Intersection[][] grid = new Intersection[rows][cols];
 
         // ---------------------------------------------------------
-        // BƯỚC 1: ĐÚC 9 NGÃ TƯ (TRAFFIC NODES) VÀ CẮM ĐÈN
+        // BƯỚC 1: ĐÚC 12 NGÃ TƯ (TRAFFIC NODES) VÀ CẮM ĐÈN
         // ---------------------------------------------------------
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
@@ -30,20 +29,18 @@ public class MapLoader {
                 Intersection node = new Intersection(pos, nodeId);
 
                 // =========================================================
-                // 🔥 ĐOẠN CẮM ĐÈN CỦA ÔNG THẮNG VÀO NGÃ TƯ CỦA BẢO 🔥
+                // 🔥 THUẬT TOÁN ĐI TÌM 4 GÓC TỰ ĐỘNG 🔥
                 // =========================================================
+                boolean isTopLeft = (r == 0 && c == 0);
+                boolean isTopRight = (r == 0 && c == cols - 1);
+                boolean isBottomLeft = (r == rows - 1 && c == 0);
+                boolean isBottomRight = (r == rows - 1 && c == cols - 1);
 
-                // 🛠️ BƯỚC LỌC TẠI ĐÂY: Chỉ cắm đèn nếu KHÔNG PHẢI là 4 góc rẽ
-                if (!nodeId.equals("Node_0_0") && !nodeId.equals("Node_0_2") &&
-                        !nodeId.equals("Node_2_0") && !nodeId.equals("Node_2_2")) {
-
+                // Chỉ cắm đèn nếu KHÔNG PHẢI là 4 góc rẽ
+                if (!isTopLeft && !isTopRight && !isBottomLeft && !isBottomRight) {
                     TrafficController boDieuKhien = new TrafficController();
-
-                    // Cắm 2 cái đèn đếm ngược 10s (1 cho làn Đông-Tây, 1 cho làn Bắc-Nam)
                     boDieuKhien.addTrafficLight(new DelayCountdownTrafficLight(LightState.GREEN));
                     boDieuKhien.addTrafficLight(new DelayCountdownTrafficLight(LightState.RED));
-
-                    // Gắn chặt bộ điều khiển vào cái ngã tư này
                     node.setTrafficController(boDieuKhien);
                 }
                 // =========================================================
@@ -63,20 +60,14 @@ public class MapLoader {
                 if (c < cols - 1) {
                     Intersection nodeA = grid[r][c];
                     Intersection nodeB = grid[r][c + 1];
-
-                    // Constructor của Road tự động sinh ra rightWay (A->B) và leftWay (B->A)
-                    // Mỗi Way sẽ tự động đẻ ra 3 Lane bên trong nhờ toán học Vector
-                    Road horizontalRoad = new Road(nodeA, nodeB, 3);
-                    graph.addRoad(horizontalRoad);
+                    graph.addRoad(new Road(nodeA, nodeB, 3));
                 }
 
                 // 2. Rải đường dọc (Trên xuống Dưới)
                 if (r < rows - 1) {
                     Intersection nodeTop = grid[r][c];
                     Intersection nodeBottom = grid[r + 1][c];
-
-                    Road verticalRoad = new Road(nodeTop, nodeBottom, 3);
-                    graph.addRoad(verticalRoad);
+                    graph.addRoad(new Road(nodeTop, nodeBottom, 3));
                 }
             }
         }

@@ -5,22 +5,46 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="8cd28691-f9cf-4564-b7bb-1d06a98c30cf" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/encodings.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/jarRepositories.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/MapSystem/map/MapLoader.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/MapSystem/map/MapLoader.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/UI/MainLauncher.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/UI/MainLauncher.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/VehicleSystem/behavior/NormalBehavior.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/VehicleSystem/behavior/NormalBehavior.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/VehicleSystem/vehicle/Vehicle.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/VehicleSystem/vehicle/Vehicle.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/VehicleSystem/vehicle/VehicleManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/VehicleSystem/vehicle/VehicleManager.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/TrafficSimulation.iml" beforeDir="false" afterPath="$PROJECT_DIR$/TrafficSimulation.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/MapSystem/light/CountdownTrafficLight.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/MapSystem/light/CountdownTrafficLight.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/MapSystem/light/DelayCountdownTrafficLight.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/MapSystem/light/DelayCountdownTrafficLight.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/MapSystem/light/LightState.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/MapSystem/light/LightState.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/MapSystem/light/NoCountdownTrafficLight.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/MapSystem/light/NoCountdownTrafficLight.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/MapSystem/light/TrafficController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/MapSystem/light/TrafficController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/MapSystem/light/TrafficLight.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/MapSystem/light/TrafficLight.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/MapSystem/map/Intersection.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/MapSystem/map/Intersection.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/MapSystem/map/MapLoader.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/MapSystem/map/MapLoader.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/MapSystem/map/Road.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/MapSystem/map/Road.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/MapSystem/map/RoadGraph.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/MapSystem/map/RoadGraph.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/MapSystem/math/Vector2D.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/MapSystem/math/Vector2D.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/UI/ControlPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/UI/ControlPanel.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/UI/MainLauncher.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/UI/MainLauncher.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/UI/SimulationCanvas.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/UI/SimulationCanvas.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/VehicleSystem/behavior/DrivingStrategy.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/VehicleSystem/behavior/DrivingStrategy.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/VehicleSystem/behavior/EmergencyBehavior.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/VehicleSystem/behavior/EmergencyBehavior.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/VehicleSystem/behavior/NormalBehavior.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/VehicleSystem/behavior/NormalBehavior.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/VehicleSystem/vehicle/Vehicle.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/VehicleSystem/vehicle/Vehicle.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/VehicleSystem/vehicle/VehicleManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/VehicleSystem/vehicle/VehicleManager.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/VehicleSystem/vehicle/VehicleSpawner.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/VehicleSystem/vehicle/VehicleSpawner.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/VehicleSystem/vehicle/type/Ambulance.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/VehicleSystem/vehicle/type/Ambulance.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/VehicleSystem/vehicle/type/Bus.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/VehicleSystem/vehicle/type/Bus.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/VehicleSystem/vehicle/type/Car.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/VehicleSystem/vehicle/type/Car.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/VehicleSystem/vehicle/type/FireTruck.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/VehicleSystem/vehicle/type/FireTruck.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/VehicleSystem/vehicle/type/Motorbike.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/VehicleSystem/vehicle/type/Motorbike.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/module-info.java" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="module-info" />
+      </list>
+    </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -30,6 +54,9 @@
   "associatedIndex": 6
 }]]></component>
   <component name="ProjectId" id="3FGcNzYl8L72TF894KA4I9g4viQ" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
@@ -37,8 +64,10 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "Application.MainLauncher.executor": "Run",
+    "Application.UI.MainLauncher.executor": "Run",
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.git.unshallow": "true",
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "codeWithMe.voiceChat.enabledByDefault": "false",
@@ -49,15 +78,36 @@
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
-    "project.structure.last.edited": "Project",
+    "project.structure.last.edited": "Libraries",
     "project.structure.proportion": "0.15",
     "project.structure.side.proportion": "0.2"
   }
 }]]></component>
-  <component name="RunManager">
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\TrafficSimulation\src\main\java" />
+      <recent name="D:\TrafficSimulation\src" />
+      <recent name="D:\TrafficSimulation\src\main" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Application.UI.MainLauncher">
     <configuration name="MainLauncher" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="main.java.IU.MainLauncher" />
+      <module name="TrafficSimulation" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="main.java.IU.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="UI.MainLauncher" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="UI.MainLauncher" />
       <module name="TrafficSimulation" />
+      <option name="VM_PARAMETERS" value="--module-path &quot;C:\Users\ADMIN\Downloads\openjfx-26.0.1_windows-x64_bin-sdk\javafx-sdk-26.0.1\lib&quot; --add-modules javafx.controls,javafx.fxml,javafx.media" />
       <extension name="coverage">
         <pattern>
           <option name="PATTERN" value="UI.*" />
@@ -68,8 +118,13 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <list>
+      <item itemvalue="Application.MainLauncher" />
+      <item itemvalue="Application.UI.MainLauncher" />
+    </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Application.UI.MainLauncher" />
         <item itemvalue="Application.MainLauncher" />
       </list>
     </recent_temporary>

@@ -4,7 +4,7 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.StrokeLineCap;
-import javafx.scene.transform.Rotate;
+
 import java.util.List;
 
 import MapSystem.map.Intersection;
@@ -12,10 +12,13 @@ import MapSystem.map.Road;
 import MapSystem.map.RoadGraph;
 import VehicleSystem.vehicle.Vehicle;
 import VehicleSystem.vehicle.VehicleManager;
-import VehicleSystem.vehicle.type.*;
 
 // ĐÃ THÊM IMPORT ĐỂ NHẬN DIỆN ĐÈN CỦA ÔNG THẮNG
 import MapSystem.light.TrafficLight;
+import VehicleSystem.vehicle.type.Ambulance;
+import VehicleSystem.vehicle.type.Bus;
+import VehicleSystem.vehicle.type.FireTruck;
+import VehicleSystem.vehicle.type.Motorbike;
 
 public class SimulationCanvas extends Canvas {
 
@@ -338,7 +341,7 @@ public class SimulationCanvas extends Canvas {
             gc.setLineDashes((double[]) null);
         }
 
-        // ================= LAYER 3: ĐÈ ĐẢO CỎ VÀ BO VIỀN TÂM NGÃ TƯ =================
+        // ================= LAYER 3: VẼ ĐẢO CỎ VÀ BO VIỀN TÂM NGÃ TƯ =================
         for (Intersection node : currentNodes) {
             double cx = node.getPosition().getX() * scale + panOffsetX;
             double cy = node.getPosition().getY() * scale + panOffsetY;
@@ -353,9 +356,9 @@ public class SimulationCanvas extends Canvas {
             gc.setLineWidth(2.0 * scale);
             gc.strokeOval(cx - centerIslandD / 2.0, cy - centerIslandD / 2.0, centerIslandD, centerIslandD);
 
-            // Tên ngã tư định vị chữ bám theo bùng binh
-            gc.setFill(Color.WHITE);
-            gc.fillText(node.getId(), cx + (35 * scale), cy - (35 * scale));
+            // 🛠️ DÒNG NÀY ĐANG VẼ CHỮ "Node_x_y" LÊN MÀN HÌNH
+            // Ông chỉ cần thêm // vào trước dòng dưới đây để ẩn chữ đi:
+            // gc.fillText(node.getId(), cx + (35 * scale), cy - (35 * scale));
         }
 
         // ===============================================================

@@ -3,6 +3,7 @@ package VehicleSystem.behavior;
 import VehicleSystem.vehicle.Vehicle;
 import MapSystem.light.LightState;
 import MapSystem.light.TrafficController;
+
 import java.util.List;
 
 public class NormalBehavior implements DrivingStrategy {

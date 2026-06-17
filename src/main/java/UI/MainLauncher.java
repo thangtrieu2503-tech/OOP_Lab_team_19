@@ -9,6 +9,7 @@ import javafx.stage.Stage;
 import MapSystem.map.MapLoader;
 import MapSystem.map.RoadGraph;
 import VehicleSystem.vehicle.VehicleManager;
+import MapSystem.map.Intersection;
 // Nhớ import ControlPanel nếu file đó đang nằm ở traffic.components
 // import traffic.components.ControlPanel;
 
@@ -59,7 +60,7 @@ public class MainLauncher extends Application {
                 vehicleManager.updateAll();
 
                 // b) 🔥 DÒNG CODE THẦN THÁNH: Lắp pin cho hệ thống đèn của ông Thắng chạy 🔥
-                for (MapSystem.map.Intersection node : map.getIntersections()) {
+                for (Intersection node : map.getIntersections()) {
                     if (node.getTrafficController() != null) {
                         node.getTrafficController().update(deltaTime); // Đập nhịp thời gian thực vào bộ điều khiển pha
                     }

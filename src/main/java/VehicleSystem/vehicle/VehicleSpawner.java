@@ -1,9 +1,11 @@
 package VehicleSystem.vehicle;
 
-import VehicleSystem.behavior.*;
-import VehicleSystem.vehicle.type.*;// Import bộ 5 xe mới của ông
 import MapSystem.map.Intersection;
 import MapSystem.map.RoadGraph;
+import VehicleSystem.behavior.EmergencyBehavior;
+import VehicleSystem.behavior.NormalBehavior;
+import VehicleSystem.vehicle.type.*;
+
 import java.util.List;
 import java.util.Random;
 
