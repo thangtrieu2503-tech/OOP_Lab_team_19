@@ -2,7 +2,7 @@ package MapSystem.light;
 
 public abstract class TrafficLight {
     protected LightState currentState;
-    protected double internalTimer; // Đếm ngược số giây (ví dụ: 15.0)
+    protected double internalTimer;
     protected double greenDuration = 15.0;
     protected double yellowDuration = 3.0;
     protected double redDuration = 15.0;
@@ -12,46 +12,41 @@ public abstract class TrafficLight {
         resetTimerForState(initialState);
     }
 
-    // Hàm đếm ngược thời gian chạy ngầm - Trái tim logic của đèn
     public void update(double deltaTime) {
         internalTimer -= deltaTime;
-        if (internalTimer <= 0) {
-            switchState();
+        if (internalTimer < 0) {
+            internalTimer = 0;
         }
     }
 
-    // Tự động luân chuyển trạng thái Đỏ -> Xanh -> Vàng -> Đỏ
-    private void switchState() {
-        switch (currentState) {
+    public void resetTimerForState(LightState state) {
+        switch (state) {
             case GREEN:
-                currentState = LightState.YELLOW;
-                resetTimerForState(LightState.YELLOW);
+                internalTimer = greenDuration;
                 break;
             case YELLOW:
-                currentState = LightState.RED;
-                resetTimerForState(LightState.RED);
+                internalTimer = yellowDuration;
                 break;
             case RED:
-                currentState = LightState.GREEN;
-                resetTimerForState(LightState.GREEN);
+                internalTimer = redDuration;
                 break;
         }
     }
 
-    private void resetTimerForState(LightState state) {
-        switch (state) {
-            case GREEN: internalTimer = greenDuration; break;
-            case YELLOW: internalTimer = yellowDuration; break;
-            case RED: internalTimer = redDuration; break;
+    public void forceSwitchState() {
+        switch (currentState) {
+            case GREEN:
+                setCurrentState(LightState.YELLOW);
+                break;
+            case YELLOW:
+                setCurrentState(LightState.RED);
+                break;
+            case RED:
+                setCurrentState(LightState.GREEN);
+                break;
         }
     }
 
-    // Ép chuyển màu lập tức khi người dùng Click thủ công (Manual Mode)
-    public void forceSwitchState() {
-        switchState();
-    }
-
-    // Getter phục vụ AI xe (Phong) và Đồ họa (Nhân)
     public LightState getCurrentState() {
         return currentState;
     }
@@ -61,6 +56,21 @@ public abstract class TrafficLight {
         resetTimerForState(state);
     }
 
-    // Hàm trừu tượng: Ép các loại đèn con tự quyết định cách hiển thị con số
+    public double getInternalTimer() {
+        return internalTimer;
+    }
+
+    public void setGreenDuration(double greenDuration) {
+        this.greenDuration = greenDuration;
+    }
+
+    public void setYellowDuration(double yellowDuration) {
+        this.yellowDuration = yellowDuration;
+    }
+
+    public void setRedDuration(double redDuration) {
+        this.redDuration = redDuration;
+    }
+
     public abstract String getDisplayTimer();
 }

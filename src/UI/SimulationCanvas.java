@@ -14,6 +14,9 @@ import VehicleSystem.vehicle.Vehicle;
 import VehicleSystem.vehicle.VehicleManager;
 import VehicleSystem.vehicle.type.*;
 
+// ĐÃ THÊM IMPORT ĐỂ NHẬN DIỆN ĐÈN CỦA ÔNG THẮNG
+import MapSystem.light.TrafficLight;
+
 public class SimulationCanvas extends Canvas {
 
     private RoadGraph map;
@@ -78,8 +81,9 @@ public class SimulationCanvas extends Canvas {
 
     // ===============================================================
     // 🛠️ HÀM BỔ TRỢ 1: VẼ CHI TIẾT MỘT CỤM ĐÈN TÍN HIỆU + COUNTDOWN
+    // Đã sửa thành kiểu String (displayTimer) để nhận chuỗi của backend
     // ===============================================================
-    private void drawSingleLight(GraphicsContext gc, double x, double y, double d, String state, boolean isHorizontal, int countdown) {
+    private void drawSingleLight(GraphicsContext gc, double x, double y, double d, String state, boolean isHorizontal, String displayTimer) {
         double gap = Math.max(1, d / 4.0);
         Color off = Color.web("#3C3C3C"); // Màu đèn tắt
 
@@ -98,7 +102,7 @@ public class SimulationCanvas extends Canvas {
             gc.setFill(Color.BLACK); gc.fillRect(boxX, y, d, d);
             gc.setFill(state.equalsIgnoreCase("RED") ? Color.RED : (state.equalsIgnoreCase("GREEN") ? Color.GREEN : Color.YELLOW));
             gc.setFont(javafx.scene.text.Font.font("Arial", javafx.scene.text.FontWeight.BOLD, Math.max(d - 1, 9)));
-            gc.fillText(String.valueOf(countdown), boxX + (1 * scale), y + d - (1 * scale));
+            gc.fillText(displayTimer, boxX + (1 * scale), y + d - (1 * scale)); // CẮM THỜI GIAN THẬT VÀO ĐÂY
         } else {
             // Vẽ hộp nền đen bọc ngoài (Dọc)
             gc.setFill(Color.web("#141414"));
@@ -108,7 +112,7 @@ public class SimulationCanvas extends Canvas {
             gc.setFill(Color.BLACK); gc.fillRect(x, y, d, d);
             gc.setFill(state.equalsIgnoreCase("RED") ? Color.RED : (state.equalsIgnoreCase("GREEN") ? Color.GREEN : Color.YELLOW));
             gc.setFont(javafx.scene.text.Font.font("Arial", javafx.scene.text.FontWeight.BOLD, Math.max(d - 1, 9)));
-            gc.fillText(String.valueOf(countdown), x + (1 * scale), y + d - (1 * scale));
+            gc.fillText(displayTimer, x + (1 * scale), y + d - (1 * scale)); // CẮM THỜI GIAN THẬT VÀO ĐÂY
 
             // Đổ màu 3 mắt đèn tròn ở dưới
             gc.setFill(state.equalsIgnoreCase("RED") ? Color.RED : off); gc.fillOval(x, y + d + gap, d, d);
@@ -119,17 +123,9 @@ public class SimulationCanvas extends Canvas {
 
     // ===============================================================
     // 🛠️ HÀM BỔ TRỢ 2: TỰ ĐỘNG ĐỊNH VỊ VÀ CẮM ĐÈN TẠI CÁC ĐẦU NÚT GIAO LỘ
+    // Đã đập bỏ đồ giả, lấy thời gian thật từ Controller của ông Thắng
     // ===============================================================
     private void drawAllTrafficLights(GraphicsContext gc, List<Intersection> currentNodes) {
-        // 🛠️ ĐOẠN ĐẾM GIÂY MOCKUP MẪU: Ông có thể thay bằng hàm lấy time thực từ engine/manager của ông nhé!
-        int countdown = (int) ((20000 - (System.currentTimeMillis() % 20000)) / 1000);
-        String stateEW = (System.currentTimeMillis() % 20000 < 10000) ? "GREEN" : ((System.currentTimeMillis() % 20000 < 12000) ? "YELLOW" : "RED");
-        if (stateEW.equals("YELLOW")) countdown = (int) ((12000 - (System.currentTimeMillis() % 20000)) / 1000);
-        else if (stateEW.equals("RED")) countdown = (int) ((20000 - (System.currentTimeMillis() % 20000)) / 1000);
-
-        String stateNS = stateEW.equals("RED") ? "GREEN" : (stateEW.equals("GREEN") ? "RED" : "RED");
-        int countdownNS = stateEW.equals("RED") ? countdown : (stateEW.equals("GREEN") ? countdown + 2 : countdown);
-
         // Kích thước mắt đèn co giãn động theo tầng Zoom
         double dynamicD = 11.0 * scale; if (dynamicD < 6) dynamicD = 6;
         double gap = Math.max(1, dynamicD / 4.0);
@@ -153,11 +149,28 @@ public class SimulationCanvas extends Canvas {
                 if (n2.getPosition().getY() < n1.getPosition().getY() - 5 && Math.abs(n2.getPosition().getX() - n1.getPosition().getX()) < 5) hasTop = true;
             }
 
+            // ---- KẾT NỐI VỚI BACKEND ĐÈN THẬT ----
+            var controller = n1.getTrafficController();
+            // Nếu tại ngã tư này chưa được cắm TrafficController, hoặc Controller chưa có đèn -> Bỏ qua không vẽ
+            if (controller == null || controller.getLights().isEmpty()) continue;
+
+            List<TrafficLight> realLights = controller.getLights();
+
+            // Lấy thông tin đèn từ danh sách của ông Thắng
+            TrafficLight lightEW = realLights.get(0);
+            TrafficLight lightNS = realLights.size() > 1 ? realLights.get(1) : lightEW;
+
+            String stateEW = lightEW.getCurrentState().name();
+            String timerEW = lightEW.getDisplayTimer(); // Sẽ trả về chuỗi rỗng "" nếu > 10s (Ẩn UI)
+
+            String stateNS = lightNS.getCurrentState().name();
+            String timerNS = lightNS.getDisplayTimer();
+
             // Cắm đèn rẽ nhánh tương ứng né vạch làn đường
-            if (hasTop) drawSingleLight(gc, cx - laneCenter - (lightBoxLength / 2.0), cy - paddingStop - dynamicD, dynamicD, stateNS, true, countdownNS);
-            if (hasBottom) drawSingleLight(gc, cx + laneCenter - (lightBoxLength / 2.0), cy + paddingStop, dynamicD, stateNS, true, countdownNS);
-            if (hasLeft) drawSingleLight(gc, cx - paddingStop - dynamicD, cy - laneCenter - (lightBoxLength / 2.0), dynamicD, stateEW, false, countdown);
-            if (hasRight) drawSingleLight(gc, cx + rActual + (10.0 * scale), cy + laneCenter - (lightBoxLength / 2.0), dynamicD, stateEW, false, countdown);
+            if (hasTop) drawSingleLight(gc, cx - laneCenter - (lightBoxLength / 2.0), cy - paddingStop - dynamicD, dynamicD, stateNS, true, timerNS);
+            if (hasBottom) drawSingleLight(gc, cx + laneCenter - (lightBoxLength / 2.0), cy + paddingStop, dynamicD, stateNS, true, timerNS);
+            if (hasLeft) drawSingleLight(gc, cx - paddingStop - dynamicD, cy - laneCenter - (lightBoxLength / 2.0), dynamicD, stateEW, false, timerEW);
+            if (hasRight) drawSingleLight(gc, cx + rActual + (10.0 * scale), cy + laneCenter - (lightBoxLength / 2.0), dynamicD, stateEW, false, timerEW);
         }
     }
 
@@ -333,6 +346,7 @@ public class SimulationCanvas extends Canvas {
 
         // ===============================================================
         // 🛠️ LAYER 3.5: VẼ ĐÈ HỆ THỐNG ĐÈN GIAO THÔNG CÓ ĐẾM NGƯỢC COUNTDOWN
+        // Đã tự động gọi hàm drawAllTrafficLights nối chuẩn với Backend
         // ===============================================================
         drawAllTrafficLights(gc, currentNodes);
 
@@ -394,6 +408,4 @@ public class SimulationCanvas extends Canvas {
             gc.restore();
         }
     }
-
-    // now
 }

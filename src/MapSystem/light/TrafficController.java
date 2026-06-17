@@ -6,49 +6,87 @@ import java.util.ArrayList;
 public class TrafficController {
     private List<TrafficLight> lights;
     private boolean isAutoMode;
+
+    // Quản lý trạng thái pha thông minh
     private double phaseTimer;
+    private double greenPhaseDuration = 8.0; // Thời gian đèn xanh chuẩn
+    private double yellowPhaseDuration = 2.0;  // Thời gian đèn vàng chuẩn
+    private boolean isInYellowPhase;
     private int currentPhaseIndex;
-    private double phaseDuration = 15.0; // Thời gian cho mỗi pha đèn
 
     public TrafficController() {
         this.lights = new ArrayList<>();
-        this.isAutoMode = true; // Mặc định chạy tự động
-        this.phaseTimer = phaseDuration;
+        this.isAutoMode = true;
+        this.phaseTimer = greenPhaseDuration;
+        this.isInYellowPhase = false;
         this.currentPhaseIndex = 0;
     }
 
-    // Nhận nhịp cập nhật từ SimulationEngine của Bảo
     public void update(double deltaTime) {
-        if (!isAutoMode) return; // Nếu đang bật thủ công bằng tay thì đóng băng bộ đếm tự động
-
-        // Cách 1: Cho các đèn tự đếm độc lập (Nếu cấu hình theo cụm đường)
+        // 1. Cập nhật thời gian UI cho các đèn
         for (TrafficLight light : lights) {
             light.update(deltaTime);
         }
 
-        // Cách 2: Logic phân pha cho ngã rẽ động (Thích ứng Ngã 3, 4, 5 của Bảo)
-        /*
+        if (!isAutoMode) return;
         if (lights.isEmpty()) return;
+
+        // 2. Controller đếm ngược tổng
         phaseTimer -= deltaTime;
+
         if (phaseTimer <= 0) {
-            phaseTimer = phaseDuration;
-            // Thuật toán luân chuyển pha dựa trên số lượng đèn thực tế tại nút giao
-            currentPhaseIndex = (currentPhaseIndex + 1) % lights.size();
-            for (int i = 0; i < lights.size(); i++) {
-                if (i == currentPhaseIndex) {
-                    lights.get(i).setCurrentState(LightState.GREEN);
-                } else {
-                    lights.get(i).setCurrentState(LightState.RED);
+            if (!isInYellowPhase) {
+                // HẾT PHA XANH -> CHUYỂN SANG VÀNG
+                isInYellowPhase = true;
+                phaseTimer = yellowPhaseDuration;
+
+                for (int i = 0; i < lights.size(); i++) {
+                    TrafficLight light = lights.get(i);
+                    if (i == currentPhaseIndex && light.getCurrentState() == LightState.GREEN) {
+                        // SỬA LỖI TẠI ĐÂY: Ép thông số chuẩn trước khi chuyển trạng thái
+                        light.yellowDuration = this.yellowPhaseDuration;
+                        light.setCurrentState(LightState.YELLOW);
+                    }
+                }
+            } else {
+                // HẾT PHA VÀNG -> CHUYỂN SANG XANH MỚI
+                isInYellowPhase = false;
+                phaseTimer = greenPhaseDuration;
+
+                currentPhaseIndex = (currentPhaseIndex + 1) % lights.size();
+
+                for (int i = 0; i < lights.size(); i++) {
+                    TrafficLight light = lights.get(i);
+
+                    // SỬA LỖI TẠI ĐÂY: Bắt buộc gán lại 15-3-18 của ông đè lên số của Map Bảo
+                    light.greenDuration = this.greenPhaseDuration;
+                    light.yellowDuration = this.yellowPhaseDuration;
+                    light.redDuration = this.greenPhaseDuration + this.yellowPhaseDuration; // Đỏ = 18s
+
+                    if (i == currentPhaseIndex) {
+                        light.setCurrentState(LightState.GREEN);
+                    } else {
+                        light.setCurrentState(LightState.RED);
+                    }
                 }
             }
         }
-        */
     }
 
-    // --- CÁC ĐẦU NỐI KẾT NỐI VỚI MAP ĐỘNG CỦA BẢO ---
     public void addTrafficLight(TrafficLight light) {
         if (light != null && !lights.contains(light)) {
             this.lights.add(light);
+
+            // SỬA LỖI TẠI ĐÂY: Vừa ném đèn vào là ép chuẩn thời gian luôn, không cho Map chạy bậy
+            light.greenDuration = this.greenPhaseDuration;
+            light.yellowDuration = this.yellowPhaseDuration;
+            light.redDuration = this.greenPhaseDuration + this.yellowPhaseDuration;
+
+            if (lights.size() == 1) {
+                light.setCurrentState(LightState.GREEN);
+            } else {
+                light.setCurrentState(LightState.RED);
+            }
         }
     }
 
@@ -59,27 +97,28 @@ public class TrafficController {
     public void clearAllLights() {
         this.lights.clear();
         this.currentPhaseIndex = 0;
+        this.isInYellowPhase = false;
+        this.phaseTimer = greenPhaseDuration;
     }
 
     public List<TrafficLight> getLights() {
         return this.lights;
     }
 
-    // --- CÁC HÀM TƯƠNG TÁC TỪ NGƯỜI DÙNG (CLICK CHUỘT TRÊN UI CỦA NHÂN) ---
     public boolean isAutoMode() {
         return isAutoMode;
     }
 
     public void setAutoMode(boolean autoMode) {
         this.isAutoMode = autoMode;
+        if (autoMode) {
+            this.phaseTimer = greenPhaseDuration;
+            this.isInYellowPhase = false;
+        }
     }
 
-    // Khi người dùng click chuột trực tiếp vào một cái đèn cụ thể trên GUI
     public void handleLightClick(TrafficLight clickedLight) {
-        // Bước 1: Ép hệ thống chuyển sang chế độ Thủ công ngay lập tức để người dùng điều khiển
         this.isAutoMode = false;
-
-        // Bước 2: Ép cái đèn được click chuyển màu
         if (clickedLight != null) {
             clickedLight.forceSwitchState();
         }

@@ -8,9 +8,9 @@ public class DelayCountdownTrafficLight extends TrafficLight {
 
     @Override
     public String getDisplayTimer() {
-        if (internalTimer <= 10.0) {
+        if (internalTimer > 0) {
             return String.valueOf((int) Math.ceil(internalTimer));
         }
-        return ""; // Nếu còn nhiều thời gian thì giấu số giây đi
+        return "0";
     }
 }
