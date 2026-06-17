@@ -76,6 +76,12 @@ public class VehicleManager {
 
         if (startNode == null) return;
 
+        if ("All".equals(type)) {
+            String[] allTypes = {"Car", "Motorbike", "Ambulance", "Fire Truck", "Bus"};
+            // Chọn ngẫu nhiên 1 vị trí từ 0 đến 4 trong mảng
+            type = allTypes[random.nextInt(allTypes.length)];
+        }
+
         Vehicle newVehicle = null;
         double sx = startNode.getPosition().getX();
         double sy = startNode.getPosition().getY();
