@@ -6,29 +6,33 @@ import MapSystem.math.Vector2D;
 import java.util.List;
 
 public abstract class Vehicle {
+    // Định nghĩa các hướng rẽ tại ngã tư
+    public enum TurnDirection {
+        STRAIGHT, LEFT, RIGHT
+    }
+
     // --------------------------------------------------------
     // 1. THUỘC TÍNH VỊ TRÍ & HƯỚNG ĐI (Toán học Vector)
     // --------------------------------------------------------
     private double x;
     private double y;
 
-    // Hai biến này giờ dùng để lưu hướng của cái "Đường"
+    // Hai biến này dùng để lưu hướng của cái "Đường"
     private double dirX;
     private double dirY;
 
-    // 🛠️ HỆ THỐNG BẺ LÁI (Được đưa vào từ yêu cầu rẽ mượt)
+    // HỆ THỐNG BẺ LÁI
     protected double currentAngle = 0; // Hướng đầu xe hiện tại (radian)
     protected double turnSpeed = 0.2; // Tốc độ bẻ lái
 
     // --------------------------------------------------------
-    // MỚI: KÍCH THƯỚC XE VÀ ĐỘ LỆCH LÀN (Hệ thống 6 làn đường)
+    // KÍCH THƯỚC XE VÀ ĐỘ LỆCH LÀN (Hệ thống làn đường)
     // --------------------------------------------------------
     protected double width;
     protected double length;
     protected double laneOffsetX = 0;
     protected double laneOffsetY = 0;
 
-    // 🛠️ KHAI BÁO 6 LÀN ĐƯỜNG (Thay đổi các số này cho vừa vạch kẻ đường trên Map)
     protected double[] laneDistances = {14.0, 40.0, 66.0};
     protected int currentLane = 2; // Mặc định sinh ra ở làn số 2
 
@@ -66,7 +70,7 @@ public abstract class Vehicle {
         this.acceleration = 0;
         this.driver = driver;
 
-        // Mặc định cho xe hướng thẳng xuống (sẽ được chỉnh lại ngay khi có target)
+        // Mặc định cho xe hướng thẳng xuống
         this.currentAngle = Math.PI / 2;
     }
 
@@ -74,11 +78,9 @@ public abstract class Vehicle {
     // LUỒNG CHẠY CHÍNH (Game Loop gọi hàm này)
     // ========================================================
     public void update(List<Vehicle> allVehicles) {
-        // 1. Bộ não suy nghĩ và ra lệnh
         if (driver != null) {
             driver.drive(this, allVehicles);
         }
-        // 2. Động cơ vật lý thực thi lệnh
         updatePhysics();
     }
 
@@ -86,51 +88,67 @@ public abstract class Vehicle {
     public Intersection getPreviousNode() { return this.previousNode; }
 
     // ========================================================
+    // THUẬT TOÁN XÁC ĐỊNH HƯỚNG RẼ TIẾP THEO
+    // ========================================================
+    public TurnDirection getTurnDirection() {
+        if (previousNode == null || targetNode == null) {
+            return TurnDirection.STRAIGHT;
+        }
+
+        // Vector hướng đi cũ (Từ ngã tư trước đến ngã tư hiện tại)
+        double oldDx = targetNode.getPosition().getX() - previousNode.getPosition().getX();
+        double oldDy = targetNode.getPosition().getY() - previousNode.getPosition().getY();
+
+        // Tính toán tích vô hướng chéo để xác định hướng rẽ trên màn hình (Y hướng xuống)
+        double crossProduct = oldDx * this.dirY - oldDy * this.dirX;
+
+        if (crossProduct > 0.1) {
+            return TurnDirection.RIGHT; // Rẽ phải
+        } else if (crossProduct < -0.1) {
+            return TurnDirection.LEFT;  // Rẽ trái
+        }
+
+        return TurnDirection.STRAIGHT; // Đi thẳng
+    }
+
+    // ========================================================
     // LÕI VẬT LÝ CƠ BẢN + LOGIC BẺ LÁI MƯỢT
     // ========================================================
     private void updatePhysics() {
         speed += acceleration;
 
-        // Khóa tốc độ
         if (speed <= 0) {
             speed = 0;
             if (acceleration < 0) acceleration = 0;
         }
 
-        // Giới hạn max speed
         if (speed > maxSpeed) {
             speed = maxSpeed;
         }
 
-        // 🛠️ LOGIC BẺ LÁI TỪ TỪ THAY VÌ ĐI THẲNG X, Y
         if (speed > 0 && targetNode != null) {
-            // Điểm đến thực sự = Tâm ngã tư + Độ lệch làn
             double targetX = targetNode.getPosition().getX() + laneOffsetX;
             double targetY = targetNode.getPosition().getY() + laneOffsetY;
 
-            // Tính góc mà cái xe cần phải hướng tới
             double targetAngle = Math.atan2(targetY - this.y, targetX - this.x);
             double angleDiff = targetAngle - this.currentAngle;
 
-            // Khử lỗi xoay 360 độ
             while (angleDiff > Math.PI) angleDiff -= 2 * Math.PI;
             while (angleDiff < -Math.PI) angleDiff += 2 * Math.PI;
 
-            // Xoay dần dần
             if (Math.abs(angleDiff) > turnSpeed) {
                 this.currentAngle += Math.signum(angleDiff) * turnSpeed;
             } else {
-                this.currentAngle = targetAngle; // Khóa cứng góc nếu đã sát
+                this.currentAngle = targetAngle;
             }
 
-            // Tịnh tiến theo góc Vô lăng
             this.x += Math.cos(this.currentAngle) * speed;
             this.y += Math.sin(this.currentAngle) * speed;
         }
     }
 
     // ========================================================
-    // HỆ THỐNG ĐIỀU HƯỚNG VECTOR (Đã ép xe hướng vào làn)
+    // HỆ THỐNG ĐIỀU HƯỚNG VECTOR
     // ========================================================
     public void setTargetNode(Intersection targetNode) {
         this.targetNode = targetNode;
@@ -152,7 +170,6 @@ public abstract class Vehicle {
         double dx = targetNode.getPosition().getX() - currentCenterX;
         double dy = targetNode.getPosition().getY() - currentCenterY;
 
-        // Khử sai số để tìm ra hướng chính
         if (Math.abs(dx) > Math.abs(dy)) {
             this.dirX = Math.signum(dx);
             this.dirY = 0.0;
@@ -161,26 +178,22 @@ public abstract class Vehicle {
             this.dirY = Math.signum(dy);
         }
 
-        // 🛠️ CẬP NHẬT ĐỘ LỆCH DỰA TRÊN LÀN HIỆN TẠI
         updateLaneOffset();
 
-        // THÊM LẠI 2 DÒNG NÀY ĐỂ ÉP XE VÀO ĐÚNG TỌA ĐỘ LÀN NGAY LẬP TỨC
-        // Không có 2 dòng này là xe nó đi chéo ngay lúc qua ngã tư!
         this.x = currentCenterX + this.laneOffsetX;
         this.y = currentCenterY + this.laneOffsetY;
     }
 
-    // Tính toán Offset (Độ dạt) dựa theo làn đang chạy
     private void updateLaneOffset() {
         double laneDistance = laneDistances[this.currentLane];
         this.laneOffsetX = -this.dirY * laneDistance;
         this.laneOffsetY = this.dirX * laneDistance;
     }
 
-    // Cảm biến check tới đích
     public boolean hasReachedTarget() {
         if (targetNode == null) return false;
 
+        // Điểm neo thực tế trong làn đường
         Vector2D realTarget = new Vector2D(
                 targetNode.getPosition().getX() + laneOffsetX,
                 targetNode.getPosition().getY() + laneOffsetY
@@ -197,11 +210,10 @@ public abstract class Vehicle {
     public boolean needsToYield() { return isRequestedToYield; }
     public void resetYieldFlag() { this.isRequestedToYield = false; }
 
-    // 🛠️ HÀM NHẢY LÀN MỚI
     public void changeLane(int targetLane) {
         if (targetLane >= 0 && targetLane < laneDistances.length) {
             this.currentLane = targetLane;
-            updateLaneOffset(); // Chỉ đổi target của hệ thống lái, lõi vật lý sẽ tự bẻ vô lăng dần dần sang!
+            updateLaneOffset();
         }
     }
 
@@ -218,10 +230,8 @@ public abstract class Vehicle {
     public double getY() { return this.y; }
     public double getWidth() { return this.width; }
     public double getLength() { return this.length; }
-
     public int getCurrentLane() { return this.currentLane; }
 
-    // 🎨 GIỜ TRẢ VỀ GÓC THẬT CỦA VÔ LĂNG ĐỂ CANVAS VẼ XOAY
     public double getAngle() {
         return Math.toDegrees(this.currentAngle);
     }

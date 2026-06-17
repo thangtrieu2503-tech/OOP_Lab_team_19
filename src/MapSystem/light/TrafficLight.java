@@ -1,11 +1,15 @@
 package MapSystem.light;
 
+import MapSystem.math.Vector2D;
+
 public abstract class TrafficLight {
     protected LightState currentState;
     protected double internalTimer;
     protected double greenDuration = 15.0;
     protected double yellowDuration = 3.0;
     protected double redDuration = 15.0;
+    private double x;
+    private double y;
 
     public TrafficLight(LightState initialState) {
         this.currentState = initialState;
@@ -73,4 +77,8 @@ public abstract class TrafficLight {
     }
 
     public abstract String getDisplayTimer();
+    // Trong class TrafficLight
+    public Vector2D getPosition() {
+        return new Vector2D(this.x, this.y);
+    }
 }
