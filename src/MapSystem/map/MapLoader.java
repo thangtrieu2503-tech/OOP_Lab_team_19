@@ -26,21 +26,26 @@ public class MapLoader {
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
                 Vector2D pos = new Vector2D(startX + c * spacing, startY + r * spacing);
-                // Gán ID cho ngã tư để dễ debug (VD: "Node_0_0")
-                Intersection node = new Intersection(pos, "Node_" + r + "_" + c);
+                String nodeId = "Node_" + r + "_" + c;
+                Intersection node = new Intersection(pos, nodeId);
 
                 // =========================================================
                 // 🔥 ĐOẠN CẮM ĐÈN CỦA ÔNG THẮNG VÀO NGÃ TƯ CỦA BẢO 🔥
                 // =========================================================
-                TrafficController boDieuKhien = new TrafficController();
 
-                // Cắm 2 cái đèn đếm ngược 10s (1 cho làn Đông-Tây, 1 cho làn Bắc-Nam)
-                // TrafficController của ông sẽ tự động bắt thằng thứ nhất là XANH, thằng thứ 2 là ĐỎ
-                boDieuKhien.addTrafficLight(new DelayCountdownTrafficLight(LightState.GREEN));
-                boDieuKhien.addTrafficLight(new DelayCountdownTrafficLight(LightState.RED));
+                // 🛠️ BƯỚC LỌC TẠI ĐÂY: Chỉ cắm đèn nếu KHÔNG PHẢI là 4 góc rẽ
+                if (!nodeId.equals("Node_0_0") && !nodeId.equals("Node_0_2") &&
+                        !nodeId.equals("Node_2_0") && !nodeId.equals("Node_2_2")) {
 
-                // Gắn chặt bộ điều khiển vào cái ngã tư này
-                node.setTrafficController(boDieuKhien);
+                    TrafficController boDieuKhien = new TrafficController();
+
+                    // Cắm 2 cái đèn đếm ngược 10s (1 cho làn Đông-Tây, 1 cho làn Bắc-Nam)
+                    boDieuKhien.addTrafficLight(new DelayCountdownTrafficLight(LightState.GREEN));
+                    boDieuKhien.addTrafficLight(new DelayCountdownTrafficLight(LightState.RED));
+
+                    // Gắn chặt bộ điều khiển vào cái ngã tư này
+                    node.setTrafficController(boDieuKhien);
+                }
                 // =========================================================
 
                 grid[r][c] = node;
@@ -76,7 +81,7 @@ public class MapLoader {
             }
         }
 
-        System.out.println("MapLoader ko lỗi nhé - Đã cắm đèn thành công!");
+        System.out.println("MapLoader ko lỗi nhé - Đã cắm đèn thành công (Và đã dọn dẹp 4 góc đường)!");
         return graph;
     }
 }

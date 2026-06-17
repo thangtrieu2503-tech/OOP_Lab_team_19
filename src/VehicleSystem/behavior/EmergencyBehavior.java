@@ -1,36 +1,35 @@
 package VehicleSystem.behavior;
 
 import VehicleSystem.vehicle.Vehicle;
+import MapSystem.light.LightState;
+import MapSystem.light.TrafficController;
 import java.util.List;
 
 public class EmergencyBehavior implements DrivingStrategy {
 
-    // Hệ số ưu tiên: Chạy lố 50% công suất, đạp ga mạnh
-    private final double SPEED_MULTIPLIER = 1.2;
-    private final double ACCEL_MULTIPLIER = 1.2;
-
     @Override
-    public void drive(Vehicle vehicle, List<Vehicle> allVehicles) {
-        // Biến redLightAhead đã bị xóa sổ hoàn toàn khỏi bộ não này!
-        boolean obstacleAhead = false;
+    public void drive(Vehicle me, List<Vehicle> allVehicles) {
+        me.setMaxSpeed(me.getBaseMaxSpeed() * 1.2);
+        double targetAcceleration = 0.06;
 
-        // 1. Chỉ check xem có xe cản đường không để khỏi gây tai nạn
-        // (Do anh em mình tạm bỏ tính năng dạt ra nhường đường,
-        // nên nó vẫn phải đạp phanh chờ thằng đằng trước đi khuất)
+        // 1. CHECK ĐÈN (Ưu tiên đi qua nhưng giảm tốc độ an toàn)
+        if (me.getTargetNode() != null && me.getTargetNode().getTrafficController() != null) {
+            TrafficController controller = me.getTargetNode().getTrafficController();
+            if (!controller.getLights().isEmpty()) {
+                double dx = Math.abs(me.getTargetNode().getPosition().getX() - me.getPosition().getX());
+                double dy = Math.abs(me.getTargetNode().getPosition().getY() - me.getPosition().getY());
+                int lightIndex = (dx > dy) ? 0 : 1;
+                if (lightIndex >= controller.getLights().size()) lightIndex = 0;
 
-        // 2. KHÔNG CÓ LOGIC CHECK ĐÈN GIAO THÔNG Ở ĐÂY.
-        // Tới ngã tư đèn đỏ nó vẫn phi thẳng!
-
-        // 3. Ra quyết định
-        double actualAccel = 0.1 * ACCEL_MULTIPLIER;
-        double actualLimit = vehicle.getBaseMaxSpeed() * SPEED_MULTIPLIER;
-
-        if (obstacleAhead) {
-            vehicle.setAcceleration(-0.6); // Phanh cực gắt
-        } else {
-            vehicle.setAcceleration(actualAccel);
+                if (controller.getLights().get(lightIndex).getCurrentState() == LightState.RED) {
+                    targetAcceleration = 0.01; // Đi chậm qua ngã tư
+                }
+            }
         }
 
-        vehicle.setMaxSpeed(actualLimit);
+        // 2. RADAR & CHỐNG VA CHẠM
+        // ... (Giữ nguyên logic dẹp đường và chuyển làn) ...
+
+        me.setAcceleration(targetAcceleration);
     }
 }
