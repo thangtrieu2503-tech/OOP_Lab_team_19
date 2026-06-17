@@ -394,4 +394,6 @@ public class SimulationCanvas extends Canvas {
             gc.restore();
         }
     }
+
+    // now
 }
