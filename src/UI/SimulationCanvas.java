@@ -123,7 +123,7 @@ public class SimulationCanvas extends Canvas {
 
     // ===============================================================
     // 🛠️ HÀM BỔ TRỢ 2: TỰ ĐỘNG ĐỊNH VỊ VÀ CẮM ĐÈN TẠI CÁC ĐẦU NÚT GIAO LỘ
-    // Đã đập bỏ đồ giả, lấy thời gian thật từ Controller của ông Thắng
+    // Đã chỉnh sửa: Treo đèn trên cao, nằm ngay giữa 3 làn xe chạy (Bên phải tim đường)
     // ===============================================================
     private void drawAllTrafficLights(GraphicsContext gc, List<Intersection> currentNodes) {
         // Kích thước mắt đèn co giãn động theo tầng Zoom
@@ -131,10 +131,10 @@ public class SimulationCanvas extends Canvas {
         double gap = Math.max(1, dynamicD / 4.0);
         double lightBoxLength = (dynamicD + gap) * 4.0 + gap;
 
-        double rActual = (160.0 * scale) / 2.0; // Bán kính bùng binh xám gốc
-        double currentRoadW = 160.0 * scale;
-        double laneCenter = currentRoadW / 4.0;  // Tâm tịnh tiến lệch làn cắm đèn
-        double paddingStop = rActual + (6.0 * scale); // Điểm lùi hộp đèn lọt ngoài bùng binh
+        // 🛠️ TÍNH TOÁN KHOẢNG CÁCH TREO ĐÈN (Nằm giữa 3 làn bên phải)
+        double roadHalfWidth = (160.0 * scale) / 2.0;
+        double laneCenter = roadHalfWidth / 2.0; // Tâm của 3 làn xe bên phải (khoảng offset 40px gốc)
+        double stopLine = roadHalfWidth + (2.0 * scale); // Đặt sát vạch dừng ngã tư
 
         for (Intersection n1 : currentNodes) {
             double cx = n1.getPosition().getX() * scale + panOffsetX;
@@ -166,11 +166,25 @@ public class SimulationCanvas extends Canvas {
             String stateNS = lightNS.getCurrentState().name();
             String timerNS = lightNS.getDisplayTimer();
 
-            // Cắm đèn rẽ nhánh tương ứng né vạch làn đường
-            if (hasTop) drawSingleLight(gc, cx - laneCenter - (lightBoxLength / 2.0), cy - paddingStop - dynamicD, dynamicD, stateNS, true, timerNS);
-            if (hasBottom) drawSingleLight(gc, cx + laneCenter - (lightBoxLength / 2.0), cy + paddingStop, dynamicD, stateNS, true, timerNS);
-            if (hasLeft) drawSingleLight(gc, cx - paddingStop - dynamicD, cy - laneCenter - (lightBoxLength / 2.0), dynamicD, stateEW, false, timerEW);
-            if (hasRight) drawSingleLight(gc, cx + rActual + (10.0 * scale), cy + laneCenter - (lightBoxLength / 2.0), dynamicD, stateEW, false, timerEW);
+            // =======================================================
+            // 🛠️ TREO ĐÈN TRÊN CAO Ở CHÍNH GIỮA CÁC LÀN XE BÊN PHẢI
+            // =======================================================
+            if (hasTop) {
+                // Xe từ TRÊN xuống (Đi lề trái màn hình) -> Đèn ngang treo ở nửa trái
+                drawSingleLight(gc, cx - laneCenter - (lightBoxLength / 2.0), cy - stopLine - dynamicD, dynamicD, stateNS, true, timerNS);
+            }
+            if (hasBottom) {
+                // Xe từ DƯỚI lên (Đi lề phải màn hình) -> Đèn ngang treo ở nửa phải
+                drawSingleLight(gc, cx + laneCenter - (lightBoxLength / 2.0), cy + stopLine, dynamicD, stateNS, true, timerNS);
+            }
+            if (hasLeft) {
+                // Xe từ TRÁI sang (Đi nửa dưới màn hình) -> Đèn dọc treo ở nửa dưới
+                drawSingleLight(gc, cx - stopLine - dynamicD, cy + laneCenter - (lightBoxLength / 2.0), dynamicD, stateEW, false, timerEW);
+            }
+            if (hasRight) {
+                // Xe từ PHẢI sang (Đi nửa trên màn hình) -> Đèn dọc treo ở nửa trên
+                drawSingleLight(gc, cx + stopLine, cy - laneCenter - (lightBoxLength / 2.0), dynamicD, stateEW, false, timerEW);
+            }
         }
     }
 

@@ -2,59 +2,58 @@ package VehicleSystem.behavior;
 
 import VehicleSystem.vehicle.Vehicle;
 import MapSystem.light.LightState;
-import MapSystem.map.Intersection;
-import MapSystem.light.LightState;
+import MapSystem.light.TrafficController;
 import java.util.List;
 
 public class NormalBehavior implements DrivingStrategy {
 
-    private final double SPEED_MULTIPLIER = 1.0;
-    private final double ACCEL_MULTIPLIER = 1.0;
-
-    // Thêm 2 thông số cho Radar
-    private final double SENSOR_RANGE = 120.0; // Khoảng cách bắt đầu nhìn thấy đèn (Pixel)
-    private final double STOP_LINE_DIST = 30.0; // Khoảng cách cách tâm ngã tư phải dừng lại (Vạch kẻ đường)
-
     @Override
-    public void drive(Vehicle vehicle, List<Vehicle> allVehicles) {
-        boolean obstacleAhead = false;
-        boolean redLightAhead = false;
+    public void drive(Vehicle me, List<Vehicle> allVehicles) {
+        boolean isRedLightAhead = false;
+        double targetAcceleration = 0.04;
+        double targetMaxSpeed = me.getBaseMaxSpeed();
 
-        // 1. Logic Check Xe Phía Trước (Như cũ)
-        // ... (Check va chạm)
+        // 1. CHECK ĐÈN TÍN HIỆU (NHÌN ĐÈN TRƯỚC MẶT)
+        if (me.getTargetNode() != null && me.getTargetNode().getTrafficController() != null) {
+            TrafficController controller = me.getTargetNode().getTrafficController();
+            if (!controller.getLights().isEmpty()) {
+                double dx = Math.abs(me.getTargetNode().getPosition().getX() - me.getPosition().getX());
+                double dy = Math.abs(me.getTargetNode().getPosition().getY() - me.getPosition().getY());
+                int lightIndex = (dx > dy) ? 0 : 1;
+                if (lightIndex >= controller.getLights().size()) lightIndex = 0;
 
-        // 2. Logic Check Đèn Đỏ
-        Intersection targetNode = vehicle.getTargetNode(); // Lấy ngã tư đang đi tới
+                LightState currentState = controller.getLights().get(lightIndex).getCurrentState();
+                double distToLight = me.getPosition().distanceTo(me.getTargetNode().getPosition());
 
-        // Thay vì getTrafficLight(), ta phải gọi getTrafficController()
-        if (targetNode != null && targetNode.getTrafficController() != null) {
+                // Vạch dừng chuẩn = vị trí đèn + nửa chiều dài xe
+                double stopLineDistance = 85.0 + (me.getLength() / 2.0);
 
-            // Lấy danh sách các đèn ở ngã tư này.
-            // Tạm thời anh em mình lấy đại cái đèn đầu tiên (index 0) để check trước
-            var lights = targetNode.getTrafficController().getLights();
-
-            if (!lights.isEmpty()) {
-                // Dùng công cụ Pytago đo khoảng cách
-                double distanceToNode = vehicle.getPosition().distanceTo(targetNode.getPosition());
-
-                // Trích xuất trạng thái màu của cái đèn đó
-                LightState currentState = lights.get(0).getCurrentState();
-
-                // ... (Logic đạp phanh hay vượt đèn ông giữ nguyên ở dưới nhé)
+                if (currentState == LightState.RED || currentState == LightState.YELLOW) {
+                    if (distToLight < stopLineDistance + 80.0) {
+                        isRedLightAhead = true;
+                        // Phanh gắt nếu sát vạch
+                        if (distToLight <= stopLineDistance + 5.0) {
+                            targetAcceleration = -1.0;
+                            targetMaxSpeed = 0;
+                        } else {
+                            targetAcceleration = -0.2;
+                        }
+                    }
+                }
             }
         }
 
-        // 3. Ra quyết định Cuối cùng
-        double actualAccel = 0.1 * ACCEL_MULTIPLIER;
-        double actualLimit = vehicle.getBaseMaxSpeed() * SPEED_MULTIPLIER;
-
-        // Ưu tiên phanh: Có xe cản đường HOẶC Có đèn đỏ thì đều đạp phanh
-        if (obstacleAhead || redLightAhead) {
-            vehicle.setAcceleration(-0.3); // Đạp phanh (Gia tốc âm)
-        } else {
-            vehicle.setAcceleration(actualAccel); // Bơm ga
+        // Nếu đèn đỏ thì dừng hẳn và không chạy logic khác
+        if (isRedLightAhead) {
+            me.setAcceleration(targetAcceleration);
+            me.setMaxSpeed(targetMaxSpeed);
+            return;
         }
 
-        vehicle.setMaxSpeed(actualLimit);
+        // 2. RADAR QUÉT VẬT CẢN & NHƯỜNG ĐƯỜNG (Chỉ chạy khi đèn Xanh)
+        // ... (Giữ nguyên logic tránh xe và nhường đường của ông ở đây) ...
+
+        me.setMaxSpeed(targetMaxSpeed);
+        me.setAcceleration(targetAcceleration);
     }
 }

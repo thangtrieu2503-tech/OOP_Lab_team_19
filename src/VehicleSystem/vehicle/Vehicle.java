@@ -29,7 +29,7 @@ public abstract class Vehicle {
     protected double laneOffsetY = 0;
 
     // 🛠️ KHAI BÁO 6 LÀN ĐƯỜNG (Thay đổi các số này cho vừa vạch kẻ đường trên Map)
-    protected double[] laneDistances = {15.0, 40.0, 65.0};
+    protected double[] laneDistances = {14.0, 40.0, 66.0};
     protected int currentLane = 2; // Mặc định sinh ra ở làn số 2
 
     // --------------------------------------------------------
@@ -218,6 +218,8 @@ public abstract class Vehicle {
     public double getY() { return this.y; }
     public double getWidth() { return this.width; }
     public double getLength() { return this.length; }
+
+    public int getCurrentLane() { return this.currentLane; }
 
     // 🎨 GIỜ TRẢ VỀ GÓC THẬT CỦA VÔ LĂNG ĐỂ CANVAS VẼ XOAY
     public double getAngle() {
