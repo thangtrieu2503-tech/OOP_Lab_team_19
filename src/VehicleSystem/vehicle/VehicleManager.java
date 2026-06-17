@@ -75,6 +75,8 @@ public class VehicleManager {
         }
 
         if (startNode == null) return;
+        // Độ lệch tốc độ nhỏ để xe không chạy bằng khít nhau sau này
+        double speedVariance = (random.nextDouble() * 1.0) - 0.5;
 
         if ("All".equals(type)) {
             String[] allTypes = {"Car", "Motorbike", "Ambulance", "Fire Truck", "Bus"};
@@ -95,7 +97,13 @@ public class VehicleManager {
         }
 
         if (newVehicle != null) {
+            // 🛠️ MẸO CHIA LÀN: Lấy số lượng xe hiện tại chia lấy dư cho 6
+            // Xe 1 -> làn 0, Xe 2 -> làn 1, ... Xe 6 -> làn 5, Xe 7 quay lại làn 0.
+            int assignedLane = activeVehicles.size() % 3;
+
             newVehicle.setTargetNode(startNode);
+            newVehicle.changeLane(assignedLane); // Ép xe vào làn được chỉ định luôn
+
             activeVehicles.add(newVehicle);
         }
     }

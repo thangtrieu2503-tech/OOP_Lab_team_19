@@ -21,12 +21,16 @@ public abstract class Vehicle {
     protected double turnSpeed = 0.2; // Tốc độ bẻ lái
 
     // --------------------------------------------------------
-    // MỚI: KÍCH THƯỚC XE VÀ ĐỘ LỆCH LÀN (Phục vụ UI và chia làn)
+    // MỚI: KÍCH THƯỚC XE VÀ ĐỘ LỆCH LÀN (Hệ thống 6 làn đường)
     // --------------------------------------------------------
     protected double width;
     protected double length;
     protected double laneOffsetX = 0;
     protected double laneOffsetY = 0;
+
+    // 🛠️ KHAI BÁO 6 LÀN ĐƯỜNG (Thay đổi các số này cho vừa vạch kẻ đường trên Map)
+    protected double[] laneDistances = {15.0, 40.0, 65.0};
+    protected int currentLane = 2; // Mặc định sinh ra ở làn số 2
 
     // --------------------------------------------------------
     // 2. THUỘC TÍNH VẬT LÝ & ĐỘNG CƠ
@@ -157,15 +161,20 @@ public abstract class Vehicle {
             this.dirY = Math.signum(dy);
         }
 
-        // 🛠️ DẠT SANG LÀN BÊN PHẢI
-        double laneDistance = 40.0;
-        this.laneOffsetX = -this.dirY * laneDistance;
-        this.laneOffsetY = this.dirX * laneDistance;
+        // 🛠️ CẬP NHẬT ĐỘ LỆCH DỰA TRÊN LÀN HIỆN TẠI
+        updateLaneOffset();
 
         // THÊM LẠI 2 DÒNG NÀY ĐỂ ÉP XE VÀO ĐÚNG TỌA ĐỘ LÀN NGAY LẬP TỨC
-        // Không có 2 dòng này là xe nó đi chéo ngay!
+        // Không có 2 dòng này là xe nó đi chéo ngay lúc qua ngã tư!
         this.x = currentCenterX + this.laneOffsetX;
         this.y = currentCenterY + this.laneOffsetY;
+    }
+
+    // Tính toán Offset (Độ dạt) dựa theo làn đang chạy
+    private void updateLaneOffset() {
+        double laneDistance = laneDistances[this.currentLane];
+        this.laneOffsetX = -this.dirY * laneDistance;
+        this.laneOffsetY = this.dirX * laneDistance;
     }
 
     // Cảm biến check tới đích
@@ -181,13 +190,20 @@ public abstract class Vehicle {
     }
 
     // ========================================================
-    // HỆ THỐNG GIAO TIẾP
+    // HỆ THỐNG GIAO TIẾP & CHUYỂN LÀN
     // ========================================================
     public void honkAt(Vehicle frontCar) { if (frontCar != null) frontCar.receiveHonk(); }
     public void receiveHonk() { this.isRequestedToYield = true; }
     public boolean needsToYield() { return isRequestedToYield; }
     public void resetYieldFlag() { this.isRequestedToYield = false; }
-    public void changeLane() { System.out.println("Xe đang đánh lái chuyển làn..."); }
+
+    // 🛠️ HÀM NHẢY LÀN MỚI
+    public void changeLane(int targetLane) {
+        if (targetLane >= 0 && targetLane < laneDistances.length) {
+            this.currentLane = targetLane;
+            updateLaneOffset(); // Chỉ đổi target của hệ thống lái, lõi vật lý sẽ tự bẻ vô lăng dần dần sang!
+        }
+    }
 
     // ========================================================
     // GETTERS & SETTERS

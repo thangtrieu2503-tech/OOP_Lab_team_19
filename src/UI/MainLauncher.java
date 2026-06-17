@@ -36,13 +36,37 @@ public class MainLauncher extends Application {
         root.setRight(controlPanel); // Ốp Sidebar sang lề phải
 
         // =======================================================
-        // 3. GAME LOOP - TRÁI TIM ĐỒ HỌA
+        // 3. GAME LOOP - TRÁI TIM ĐỒ HỌA (ĐÃ ĐƯỢC SỬA)
         // =======================================================
         gameLoop = new AnimationTimer() {
+            private long lastUpdate = 0; // Biến ghi nhớ mốc thời gian của khung hình trước
+
             @Override
             public void handle(long now) {
-                vehicleManager.updateAll(); // Cập nhật logic vật lý
-                canvas.render();            // Họa sĩ vẽ khung hình mới
+                if (lastUpdate == 0) {
+                    lastUpdate = now;
+                    return;
+                }
+
+                // Tính toán chính xác thời gian trôi qua thực tế giữa 2 khung hình (đơn vị: giây)
+                double deltaTime = (now - lastUpdate) / 1_000_000_000.0;
+                lastUpdate = now;
+
+                // Chặn đứng các pha giật lag hệ thống bất ngờ khiến deltaTime bị vọt lên quá cao
+                if (deltaTime > 0.1) deltaTime = 0.1;
+
+                // a) Cho xe chạy (Code cũ của nhóm)
+                vehicleManager.updateAll();
+
+                // b) 🔥 DÒNG CODE THẦN THÁNH: Lắp pin cho hệ thống đèn của ông Thắng chạy 🔥
+                for (MapSystem.map.Intersection node : map.getIntersections()) {
+                    if (node.getTrafficController() != null) {
+                        node.getTrafficController().update(deltaTime); // Đập nhịp thời gian thực vào bộ điều khiển pha
+                    }
+                }
+
+                // c) Quét chổi sơn vẽ lại toàn bộ sa hình ra màn hình
+                canvas.render();
             }
         };
 
@@ -52,13 +76,10 @@ public class MainLauncher extends Application {
 
         // --- Nút Spawn Xe ---
         controlPanel.getBtnSpawn().setOnAction(e -> {
-            // Lấy dữ liệu từ giao diện của ông
             String selectedType = controlPanel.getComboVehicleType().getValue();
             int spawnCount = controlPanel.getSpinnerSpawnCount().getValue();
 
-            // Nhả xe theo đúng số lượng ông chỉnh trong Spinner
             for (int i = 0; i < spawnCount; i++) {
-                // Tạm thời gọi spawn mặc định. Sau này sẽ nâng cấp truyền selectedType vào đây!
                 vehicleManager.spawnVehicle(selectedType);
             }
         });
@@ -66,22 +87,16 @@ public class MainLauncher extends Application {
         // --- Nút Pause (Tạm dừng mô phỏng) ---
         controlPanel.getBtnPause().setOnAction(e -> {
             gameLoop.stop(); // Đóng băng thời gian
-            controlPanel.getBtnPause().setDisable(true);   // Khóa nút Pause
-            controlPanel.getBtnResume().setDisable(false); // Mở nút Resume
+            controlPanel.getBtnPause().setDisable(true);
+            controlPanel.getBtnResume().setDisable(false);
         });
 
         // --- Nút Resume (Chạy tiếp) ---
         controlPanel.getBtnResume().setOnAction(e -> {
             gameLoop.start(); // Chạy lại thời gian
-            controlPanel.getBtnResume().setDisable(true);  // Khóa nút Resume
-            controlPanel.getBtnPause().setDisable(false);  // Mở lại nút Pause
+            controlPanel.getBtnResume().setDisable(true);
+            controlPanel.getBtnPause().setDisable(false);
         });
-
-        // (Các nút Add Road, Remove, Zoom... giữ nguyên, lát code logic sau)
-
-        // =======================================================
-        // ĐẤU NỐI SỰ KIỆN ZOOM TỪ CONTROL PANEL SANG CANVAS
-        // =======================================================
 
         // Bấm nút Zoom In trên thanh Sidebar -> Gọi canvas phóng to
         controlPanel.getBtnZoomIn().setOnAction(e -> {
@@ -94,12 +109,10 @@ public class MainLauncher extends Application {
         });
 
         // ĐẤU NỐI SỰ KIỆN CHUYỂN CHẾ ĐỘ ĐỒ HỌA XE CỘ
-        // Khi bấm nút "Rectangle Mode" -> Gọi canvas bật hình hộp (true)
         controlPanel.getBtnRectangle().setOnAction(e -> {
             canvas.setRectangleMode(true);
         });
 
-        // Khi bấm nút "Image Mode" -> Gọi canvas bật ảnh thật (false)
         controlPanel.getBtnImage().setOnAction(e -> {
             canvas.setRectangleMode(false);
         });
@@ -110,7 +123,7 @@ public class MainLauncher extends Application {
         Scene scene = new Scene(root, 1280, 800);
         primaryStage.setTitle("Mô Phỏng Giao Thông - Hệ Thống Map & Làn Xe Đỉnh Cao");
         primaryStage.setScene(scene);
-        primaryStage.setResizable(false); // Khóa form, chống kéo giãn làm vỡ layout
+        primaryStage.setResizable(false);
         primaryStage.show();
 
         // Bóp cò khởi động vòng lặp!
