@@ -22,7 +22,7 @@ public class VehicleManager {
     }
 
     // ==========================================
-    // VÒNG LẶP CẬP NHẬT
+    // VÒNG LẶP CẬP NHẬT (Giữ nguyên 100%)
     // ==========================================
     public void updateAll() {
         // 💀 THẦN CHẾT DỌN DẸP: Quét bay màu những xe bị dán bùa isDead (quá 5s)
@@ -56,7 +56,7 @@ public class VehicleManager {
     }
 
     // ==========================================
-    // THUẬT TOÁN ĐIỀU HƯỚNG
+    // THUẬT TOÁN ĐIỀU HƯỚNG (ĐÃ CẬP NHẬT LUẬT LÀN ĐƯỜNG)
     // ==========================================
     public void assignNextTarget(Vehicle v) {
         Intersection currentIntersection = v.getTargetNode();
@@ -65,22 +65,60 @@ public class VehicleManager {
         List<Intersection> neighbors = map.getNeighbors(currentIntersection);
         Intersection previousNode = v.getPreviousNode();
 
+        // 1. Lọc hướng đi cơ bản (Chặn quay đầu)
         List<Intersection> validOptions = new ArrayList<>();
         for (Intersection n : neighbors) {
-            // Chặn quay đầu: không đi ngược lại ngã tư vừa xong
             if (!n.equals(previousNode)) {
                 validOptions.add(n);
             }
         }
 
-        if (!validOptions.isEmpty()) {
+        // 2. Lọc hướng đi theo LÀN ĐƯỜNG
+        List<Intersection> laneFilteredOptions = new ArrayList<>();
+        int currentLane = v.getCurrentLane();
+
+        for (Intersection nextNode : validOptions) {
+            if (previousNode == null) {
+                laneFilteredOptions.add(nextNode);
+                continue;
+            }
+
+            double abX = currentIntersection.getPosition().getX() - previousNode.getPosition().getX();
+            double abY = currentIntersection.getPosition().getY() - previousNode.getPosition().getY();
+
+            double bcX = nextNode.getPosition().getX() - currentIntersection.getPosition().getX();
+            double bcY = nextNode.getPosition().getY() - currentIntersection.getPosition().getY();
+
+            // Tính tích có hướng để xét hướng rẽ
+            double crossProduct = (abX * bcY) - (abY * bcX);
+            boolean isLeftTurn = crossProduct < -10.0;
+            boolean isRightTurn = crossProduct > 10.0;
+
+            boolean isAllowed = true;
+
+            // CẤM rẽ trái nếu đang ở làn 2 (chỉ được rẽ trái ở làn 0 và 1)
+            if (isLeftTurn && currentLane == 2) isAllowed = false;
+
+            // CẤM rẽ phải nếu đang ở làn 0 (chỉ được rẽ phải ở làn 1 và 2)
+            if (isRightTurn && currentLane == 0) isAllowed = false;
+
+            if (isAllowed) {
+                laneFilteredOptions.add(nextNode);
+            }
+        }
+
+        // 3. Xử lý kẹt luật: Nếu danh sách rỗng (vào ngõ cụt), bỏ luật để xe đi tiếp
+        List<Intersection> finalOptions = laneFilteredOptions.isEmpty() ? validOptions : laneFilteredOptions;
+
+        // 4. Chốt hướng
+        if (!finalOptions.isEmpty()) {
             v.setPreviousNode(currentIntersection);
-            v.setTargetNode(validOptions.get(random.nextInt(validOptions.size())));
+            v.setTargetNode(finalOptions.get(random.nextInt(finalOptions.size())));
         }
     }
 
     // ==========================================
-    // LỆNH THẢ XE (SPAWN)
+    // LỆNH THẢ XE (SPAWN) (Giữ nguyên 100%)
     // ==========================================
     public void spawnVehicle(String type) {
         // Tìm tọa độ Node 1_0

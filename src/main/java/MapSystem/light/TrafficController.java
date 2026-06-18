@@ -9,8 +9,8 @@ public class TrafficController {
 
     // Quản lý trạng thái pha thông minh
     private double phaseTimer;
-    private double greenPhaseDuration = 8.0; // Thời gian đèn xanh chuẩn
-    private double yellowPhaseDuration = 2.0;  // Thời gian đèn vàng chuẩn
+    private double greenPhaseDuration = 6.0; // Thời gian đèn xanh chuẩn
+    private double yellowPhaseDuration = 1.0;  // Thời gian đèn vàng chuẩn
     private boolean isInYellowPhase;
     private int currentPhaseIndex;
 

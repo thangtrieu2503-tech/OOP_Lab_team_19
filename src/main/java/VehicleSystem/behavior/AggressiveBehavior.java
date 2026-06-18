@@ -108,6 +108,21 @@ public class AggressiveBehavior implements DrivingStrategy {
 
             if (dist > 120.0) continue;
 
+            // =========================================================
+            // 🔥 THUẬT TOÁN LỌC XE NGƯỢC CHIỀU (CHỐNG NHIỄU LÀN 0) 🔥
+            // =========================================================
+            double otherDirX = Math.cos(Math.toRadians(other.getAngle()));
+            double otherDirY = Math.sin(Math.toRadians(other.getAngle()));
+
+            // Tích vô hướng (1.0 = cùng chiều, 0 = vuông góc, -1.0 = ngược chiều)
+            double directionDotProduct = (carDirX * otherDirX) + (carDirY * otherDirY);
+
+            // Nếu 2 xe đang đi ngược hướng nhau (góc > 120 độ) -> Chắc chắn ở làn đối diện
+            if (directionDotProduct < -0.5) {
+                continue; // Bỏ qua ngay lập tức, không thèm nhận làm vật cản!
+            }
+            // =========================================================
+
             if (me.getTargetNode() != null && me.getTargetNode() == other.getTargetNode()) {
                 if (distToNode < 90.0 && dist < 60.0) {
                     if (System.identityHashCode(me) < System.identityHashCode(other)) {
