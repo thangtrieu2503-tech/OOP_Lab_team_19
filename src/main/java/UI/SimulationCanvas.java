@@ -31,6 +31,11 @@ public class SimulationCanvas extends Canvas {
 
     private boolean isRectangleMode = true;
 
+    // 🛠️ BIẾN CHO MAP BUILDER
+    public enum EditMode { NONE, ADD_NODE, ADD_ROAD, REMOVE_NODE }
+    private EditMode currentMode = EditMode.NONE;
+    private Intersection selectedNodeForRoad = null;
+
     private javafx.scene.image.Image imgCar;
     private javafx.scene.image.Image imgMotorbike;
     private javafx.scene.image.Image imgAmbulance;
@@ -42,43 +47,106 @@ public class SimulationCanvas extends Canvas {
         this.map = map;
         this.vehicleManager = vehicleManager;
 
+        // ===============================================
+        // BẮT SỰ KIỆN CHUỘT CHO MAP BUILDER & CAMERA
+        // ===============================================
         this.setOnMousePressed(e -> {
-            dragStartX = e.getX() - panOffsetX;
-            dragStartY = e.getY() - panOffsetY;
+            double realX = (e.getX() - panOffsetX) / scale;
+            double realY = (e.getY() - panOffsetY) / scale;
+
+            if (currentMode == EditMode.ADD_NODE) {
+                // TẠO NODE MỚI TẠI VỊ TRÍ CHUỘT
+                String newId = "Node_Custom_" + System.currentTimeMillis();
+                Intersection newNode = new Intersection(new MapSystem.math.Vector2D(realX, realY), newId);
+                map.addIntersection(newNode);
+                render();
+
+            } else if (currentMode == EditMode.ADD_ROAD) {
+                // NỐI 2 NODE LẠI VỚI NHAU (CLICK KÉP)
+                Intersection clickedNode = findNodeAt(realX, realY);
+                if (clickedNode != null) {
+                    if (selectedNodeForRoad == null) {
+                        selectedNodeForRoad = clickedNode; // Đánh dấu điểm đầu
+                    } else {
+                        if (selectedNodeForRoad != clickedNode) {
+                            // Tạo đường 3 làn xe chạy qua lại
+                            map.addRoad(new Road(selectedNodeForRoad, clickedNode, 3));
+                            map.addRoad(new Road(clickedNode, selectedNodeForRoad, 3));
+                        }
+                        selectedNodeForRoad = null; // Xong 1 cặp thì reset bộ nhớ
+                    }
+                    render();
+                }
+
+            } else if (currentMode == EditMode.REMOVE_NODE) {
+                // XÓA NODE VÀ TOÀN BỘ ĐƯỜNG DÍNH LIỀN
+                Intersection clickedNode = findNodeAt(realX, realY);
+                if (clickedNode != null) {
+                    map.getIntersections().remove(clickedNode);
+                    map.getRoads().removeIf(road ->
+                            road.getStartNode() == clickedNode || road.getEndNode() == clickedNode
+                    );
+                    render();
+                }
+            } else {
+                // CHẾ ĐỘ NONE: Kéo thả Map (Pan Camera)
+                dragStartX = e.getX() - panOffsetX;
+                dragStartY = e.getY() - panOffsetY;
+            }
         });
 
         this.setOnMouseDragged(e -> {
-            panOffsetX = e.getX() - dragStartX;
-            panOffsetY = e.getY() - dragStartY;
-            render();
+            if (currentMode == EditMode.NONE) {
+                panOffsetX = e.getX() - dragStartX;
+                panOffsetY = e.getY() - dragStartY;
+                render();
+            }
         });
 
+        // ===============================================
+        // TẢI TÀI NGUYÊN ẢNH XE
+        // ===============================================
         try {
             imgCar = new javafx.scene.image.Image(new java.io.File("src/main/resources/images/car.png").toURI().toString());
             imgMotorbike = new javafx.scene.image.Image(new java.io.File("src/main/resources/images/motorbike.png").toURI().toString());
             imgAmbulance = new javafx.scene.image.Image(new java.io.File("src/main/resources/images/ambulance.png").toURI().toString());
             imgFireTruck = new javafx.scene.image.Image(new java.io.File("src/main/resources/images/firetruck.png").toURI().toString());
             imgBus = new javafx.scene.image.Image(new java.io.File("src/main/resources/images/bus.png").toURI().toString());
-
             System.out.println("✅ Đã nạp thành công toàn bộ ảnh xe!");
         } catch (Exception e) {
             System.out.println("[⚠️ Đồ họa] Không nạp được ảnh Sprite xe: " + e.getMessage());
         }
     }
 
-    public void zoomIn() {
-        if (this.scale < 3.5) { this.scale *= 1.1; render(); }
+    // Hàm đổi công cụ vẽ từ giao diện gọi xuống
+    public void setEditMode(EditMode mode) {
+        this.currentMode = mode;
+        this.selectedNodeForRoad = null; // Hủy chọn node cũ nếu đổi tool
+        System.out.println("Chuyển sang công cụ: " + mode);
+        render(); // Quét lại 1 lần để tẩy cái viền chọn (nếu có)
     }
 
-    public void zoomOut() {
-        if (this.scale > 0.5) { this.scale /= 1.1; render(); }
+    // Hàm quét chuột tìm ngã tư gần nhất (Bán kính 80px)
+    private Intersection findNodeAt(double x, double y) {
+        for (Intersection node : map.getIntersections()) {
+            double dx = node.getPosition().getX() - x;
+            double dy = node.getPosition().getY() - y;
+            if (Math.sqrt(dx * dx + dy * dy) < 80.0) {
+                return node;
+            }
+        }
+        return null;
     }
+
+    public void zoomIn() { if (this.scale < 3.5) { this.scale *= 1.1; render(); } }
+    public void zoomOut() { if (this.scale > 0.5) { this.scale /= 1.1; render(); } }
 
     public void setRectangleMode(boolean mode) {
         this.isRectangleMode = mode;
         render();
     }
 
+    // (Hàm drawSingleLight và drawAllTrafficLights của ông giữ nguyên 100%)
     private void drawSingleLight(GraphicsContext gc, double x, double y, double d, String state, boolean isHorizontal, String displayTimer) {
         double gap = Math.max(1, d / 4.0);
         Color off = Color.web("#3C3C3C");
@@ -86,11 +154,9 @@ public class SimulationCanvas extends Canvas {
         if (isHorizontal) {
             gc.setFill(Color.web("#141414"));
             gc.fillRoundRect(x - gap, y - gap, (d + gap) * 4.0 + gap, d + (gap * 2.0), gap, gap);
-
             gc.setFill(state.equalsIgnoreCase("RED") ? Color.RED : off); gc.fillOval(x, y, d, d);
             gc.setFill(state.equalsIgnoreCase("YELLOW") ? Color.YELLOW : off); gc.fillOval(x + d + gap, y, d, d);
             gc.setFill(state.equalsIgnoreCase("GREEN") ? Color.GREEN : off); gc.fillOval(x + (d + gap) * 2.0, y, d, d);
-
             double boxX = x + (d + gap) * 3.0;
             gc.setFill(Color.BLACK); gc.fillRect(boxX, y, d, d);
             gc.setFill(state.equalsIgnoreCase("RED") ? Color.RED : (state.equalsIgnoreCase("GREEN") ? Color.GREEN : Color.YELLOW));
@@ -99,12 +165,10 @@ public class SimulationCanvas extends Canvas {
         } else {
             gc.setFill(Color.web("#141414"));
             gc.fillRoundRect(x - gap, y - gap, d + (gap * 2.0), (d + gap) * 4.0 + gap, gap, gap);
-
             gc.setFill(Color.BLACK); gc.fillRect(x, y, d, d);
             gc.setFill(state.equalsIgnoreCase("RED") ? Color.RED : (state.equalsIgnoreCase("GREEN") ? Color.GREEN : Color.YELLOW));
             gc.setFont(javafx.scene.text.Font.font("Arial", javafx.scene.text.FontWeight.BOLD, Math.max(d - 1, 9)));
             gc.fillText(displayTimer, x + (1 * scale), y + d - (1 * scale));
-
             gc.setFill(state.equalsIgnoreCase("RED") ? Color.RED : off); gc.fillOval(x, y + d + gap, d, d);
             gc.setFill(state.equalsIgnoreCase("YELLOW") ? Color.YELLOW : off); gc.fillOval(x, y + (d + gap) * 2.0, d, d);
             gc.setFill(state.equalsIgnoreCase("GREEN") ? Color.GREEN : off); gc.fillOval(x, y + (d + gap) * 3.0, d, d);
@@ -159,9 +223,7 @@ public class SimulationCanvas extends Canvas {
         double panelHeight = this.getHeight();
         List<Intersection> currentNodes = map.getIntersections();
 
-        // ===============================================================
-        // 🟩 VẼ ĐƯỜNG BẰNG CODE (LUÔN LUÔN VẼ)
-        // ===============================================================
+        // 1. NỀN CỎ MẶC ĐỊNH
         gc.setFill(Color.web("#E1F0E5"));
         gc.fillRect(0, 0, panelWidth, panelHeight);
 
@@ -169,6 +231,7 @@ public class SimulationCanvas extends Canvas {
         double roadWidth = 160.0 * scale;
         Color roadColor = Color.web("#555555");
 
+        // 2. TRẢI ĐƯỜNG LIỀN MẠCH
         for (Road road : map.getRoads()) {
             double sx = road.getStartNode().getPosition().getX() * scale + panOffsetX;
             double sy = road.getStartNode().getPosition().getY() * scale + panOffsetY;
@@ -181,25 +244,26 @@ public class SimulationCanvas extends Canvas {
             gc.strokeLine(sx, sy, ex, ey);
         }
 
-        for (Intersection node : currentNodes) {
-            double cx = node.getPosition().getX() * scale + panOffsetX;
-            double cy = node.getPosition().getY() * scale + panOffsetY;
-            gc.setFill(roadColor);
-            gc.fillOval(cx - circleDiameter / 2.0, cy - circleDiameter / 2.0, circleDiameter, circleDiameter);
-        }
-
-        gc.setFill(Color.web("#E1F0E5"));
+        // 3. VẼ ĐẾ NGÃ TƯ & LỚP CỎ TRUNG TÂM (CHỈ CHẠY KHI ĐỦ 9 NODE)
         Intersection n00 = null, n01 = null, n02 = null, n10 = null, n11 = null, n12 = null, n20 = null, n21 = null, n22 = null;
         for (Intersection n : currentNodes) {
             if (n.getId().equals("Node_0_0")) n00 = n; if (n.getId().equals("Node_0_1")) n01 = n; if (n.getId().equals("Node_0_2")) n02 = n;
             if (n.getId().equals("Node_1_0")) n10 = n; if (n.getId().equals("Node_1_1")) n11 = n; if (n.getId().equals("Node_1_2")) n12 = n;
             if (n.getId().equals("Node_2_0")) n20 = n; if (n.getId().equals("Node_2_1")) n21 = n; if (n.getId().equals("Node_2_2")) n22 = n;
+
+            // Vẽ bùng binh xám đè lên giao điểm
+            double cx = n.getPosition().getX() * scale + panOffsetX;
+            double cy = n.getPosition().getY() * scale + panOffsetY;
+            gc.setFill(roadColor);
+            gc.fillOval(cx - circleDiameter / 2.0, cy - circleDiameter / 2.0, circleDiameter, circleDiameter);
         }
 
-        double rOffset = roadWidth / 2.0;
-        double blockCorner = 35.0 * scale;
-
+        // Bọc lớp vẽ đất vuông vào điều kiện an toàn, nếu thiếu Node sẽ tự giấu đi để tránh lỗi Map tự do
         if (n00 != null && n11 != null && n22 != null) {
+            gc.setFill(Color.web("#E1F0E5"));
+            double rOffset = roadWidth / 2.0;
+            double blockCorner = 35.0 * scale;
+
             double x0 = n00.getPosition().getX() * scale + panOffsetX; double x1 = n01.getPosition().getX() * scale + panOffsetX; double x2 = n02.getPosition().getX() * scale + panOffsetX;
             double y0 = n00.getPosition().getY() * scale + panOffsetY; double y1 = n10.getPosition().getY() * scale + panOffsetY; double y2 = n20.getPosition().getY() * scale + panOffsetY;
 
@@ -216,6 +280,7 @@ public class SimulationCanvas extends Canvas {
             if (wD > 0 && hD > 0) gc.fillRoundRect(xD, yD, wD, hD, blockCorner, blockCorner);
         }
 
+        // 4. VẼ VẠCH KẺ LÀN XE CHẠY
         for (Road road : map.getRoads()) {
             double sx = road.getStartNode().getPosition().getX() * scale + panOffsetX;
             double sy = road.getStartNode().getPosition().getY() * scale + panOffsetY;
@@ -245,24 +310,30 @@ public class SimulationCanvas extends Canvas {
             gc.setLineDashes((double[]) null);
         }
 
+        // 5. VẼ BÙNG BINH TRUNG TÂM VÀ HIỆU ỨNG CHỌN
         for (Intersection node : currentNodes) {
             double cx = node.getPosition().getX() * scale + panOffsetX;
             double cy = node.getPosition().getY() * scale + panOffsetY;
+
+            // Vẽ bùng binh xanh
             gc.setFill(Color.web("#28A745"));
             double centerIslandD = 60.0 * scale;
             gc.fillOval(cx - centerIslandD / 2.0, cy - centerIslandD / 2.0, centerIslandD, centerIslandD);
             gc.setStroke(Color.WHITE); gc.setLineWidth(2.0 * scale);
             gc.strokeOval(cx - centerIslandD / 2.0, cy - centerIslandD / 2.0, centerIslandD, centerIslandD);
+
+            // HIỆU ỨNG VIỀN ĐỎ NẾU NODE ĐANG ĐƯỢC CHỌN (Chế độ nối đường)
+            if (node == selectedNodeForRoad) {
+                gc.setStroke(Color.RED);
+                gc.setLineWidth(4.0 * scale);
+                gc.strokeOval(cx - (centerIslandD/2 + 8), cy - (centerIslandD/2 + 8), centerIslandD + 16, centerIslandD + 16);
+            }
         }
 
-        // ===============================================================
-        // 🚥 VẼ ĐÈN GIAO THÔNG CÓ COUNTDOWN
-        // ===============================================================
+        // 6. ĐÈN GIAO THÔNG CÓ COUNTDOWN
         drawAllTrafficLights(gc, currentNodes);
 
-        // ===============================================================
-        // 🚗 VẼ XE CỘ (LÚC NÀY NÚT BẤM CHỈ CÓ TÁC DỤNG VỚI XE)
-        // ===============================================================
+        // 7. VẼ XE CỘ
         for (Vehicle v : vehicleManager.getVehicles()) {
             double vx = v.getPosition().getX() * scale + panOffsetX;
             double vy = v.getPosition().getY() * scale + panOffsetY;
@@ -285,29 +356,23 @@ public class SimulationCanvas extends Canvas {
             gc.translate(vx, vy);
             gc.rotate(angle);
 
-            // TÁCH CHẾ ĐỘ: Nếu đang chọn RectangleMode HOẶC xe chưa load được ảnh -> Vẽ hình hộp phẳng
             if (isRectangleMode || activeSprite == null) {
                 gc.setFill(rectColor);
                 gc.setStroke(Color.BLACK);
                 gc.setLineWidth(1.0 * scale);
                 gc.fillRoundRect(-h / 2.0, -w / 2.0, h, w, 4 * scale, 4 * scale);
                 gc.strokeRoundRect(-h / 2.0, -w / 2.0, h, w, 4 * scale, 4 * scale);
-
                 gc.setFill(Color.web("#1A1C20"));
                 gc.fillRoundRect(h / 2.0 - (8 * scale), -w / 2.0 + (2 * scale), 6 * scale, w - (4 * scale), 2 * scale, 2 * scale);
             } else {
-                // CHẾ ĐỘ IMAGE: In ảnh xe thật ra đường
                 gc.drawImage(activeSprite, -h / 2.0, -w / 2.0, h, w);
             }
 
-            // Đèn LED xanh đỏ chớp nháy của xe ưu tiên (Luôn hiển thị kể cả trên ảnh xe)
             if (v instanceof Ambulance || v instanceof FireTruck) {
                 boolean toggle = (System.currentTimeMillis() / 150) % 2 == 0;
                 double ledSize = 4.0 * scale;
-
                 gc.setFill(toggle ? Color.RED : Color.BLUE);
                 gc.fillOval(-h / 4.0, -w / 2.0 + (1 * scale), ledSize, ledSize);
-
                 gc.setFill(toggle ? Color.BLUE : Color.RED);
                 gc.fillOval(-h / 4.0, w / 2.0 - ledSize - (1 * scale), ledSize, ledSize);
             }

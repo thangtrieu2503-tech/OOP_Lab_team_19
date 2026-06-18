@@ -12,19 +12,23 @@ public class MapLoader {
 
         // 🛠️ CHỈNH QUY MÔ MAP Ở ĐÂY
         int rows = 3; // 3 dọc
-        int cols = 4; // 4 ngang
-        double spacing = 450.0; // Kéo giãn khoảng cách giữa các ngã tư ra gấp đôi (Cũ là 300)
-        double startX = 150.0;  // Xích tọa độ đầu tiên lùi vào một chút cho cân
-        double startY = 150.0;
+        int cols = 3; // SỬA THÀNH 3 ngang (Map 3x3 chuẩn chỉ)
+
+        // Tinh chỉnh lại tọa độ để 9 cái ngã tư nằm ở giữa Canvas 1090x800
+        double spacing = 480.0; // Khoảng cách giữa các ngã tư
+        double startX = 185.0;  // Tọa độ X ngã tư góc trên trái
+        double startY = 40.0;   // Tọa độ Y ngã tư góc trên trái
 
         Intersection[][] grid = new Intersection[rows][cols];
 
         // ---------------------------------------------------------
-        // BƯỚC 1: ĐÚC 12 NGÃ TƯ (TRAFFIC NODES) VÀ CẮM ĐÈN
+        // BƯỚC 1: ĐÚC 9 NGÃ TƯ (TRAFFIC NODES) VÀ CẮM ĐÈN
         // ---------------------------------------------------------
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
                 Vector2D pos = new Vector2D(startX + c * spacing, startY + r * spacing);
+
+                // Mã Node này (Node_r_c) sẽ khớp hoàn hảo 100% với Layer 1.5 vẽ đất ở Canvas
                 String nodeId = "Node_" + r + "_" + c;
                 Intersection node = new Intersection(pos, nodeId);
 
@@ -60,6 +64,7 @@ public class MapLoader {
                 if (c < cols - 1) {
                     Intersection nodeA = grid[r][c];
                     Intersection nodeB = grid[r][c + 1];
+                    // Giữ nguyên logic đường 3 làn của ông
                     graph.addRoad(new Road(nodeA, nodeB, 3));
                 }
 
@@ -67,6 +72,7 @@ public class MapLoader {
                 if (r < rows - 1) {
                     Intersection nodeTop = grid[r][c];
                     Intersection nodeBottom = grid[r + 1][c];
+                    // Giữ nguyên logic đường 3 làn của ông
                     graph.addRoad(new Road(nodeTop, nodeBottom, 3));
                 }
             }

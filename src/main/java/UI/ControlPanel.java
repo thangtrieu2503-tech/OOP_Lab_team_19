@@ -12,6 +12,11 @@ import javafx.scene.text.Font;
 
 public class ControlPanel extends VBox {
 
+    // --- CÁC NÚT MỚI THÊM CHO MAP BUILDER ---
+    private Button btnAddNode;
+    private Button btnLoadDefault;
+
+    // --- CÁC NÚT CŨ GIỮ NGUYÊN ---
     private Button btnRemoveNode;
     private Button btnAddRoad;
     private Button btnResume;
@@ -41,16 +46,23 @@ public class ControlPanel extends VBox {
         double btnWidth = 160;
         double btnHeight = 28;
 
-        // Khởi tạo các nút bấm phẳng bọc viền mảnh sạch sẽ
+        // ===============================================
+        // 1. KHỞI TẠO NÚT BẤM VÀ CÔNG CỤ
+        // ===============================================
+
+        // Cụm Map Builder (Đã thêm Add Node và Load Default)
+        btnAddNode = createStyledButton("Add Node", btnWidth, btnHeight);
         btnAddRoad = createStyledButton("Add Road", btnWidth, btnHeight);
-        btnRemoveNode = createStyledButton("Remove Traffic Node", btnWidth, btnHeight);
+        btnRemoveNode = createStyledButton("Remove Node", btnWidth, btnHeight); // Đổi tên cho gọn đẹp
+        btnLoadDefault = createStyledButton("Load Default Map", btnWidth, btnHeight);
+
+        // Cụm Mô phỏng
         btnResume = createStyledButton("Resume Simulation", btnWidth, btnHeight);
         btnPause = createStyledButton("Pause Simulation", btnWidth, btnHeight);
-        btnSpawn = createStyledButton("Spawn", btnWidth, btnHeight);
-        btnRectangle = createStyledButton("Rectangle Mode", 160, btnHeight);
-        btnImage = createStyledButton("Image Mode", 160, btnHeight);
-
         btnResume.setDisable(true); // Khóa nút Resume lúc bắt đầu
+
+        // Cụm Spawn xe
+        btnSpawn = createStyledButton("Spawn", btnWidth, btnHeight);
 
         // Bộ chọn số lượng đẻ xe (1 đến 20)
         spinnerSpawnCount = new Spinner<>(1, 20, 1);
@@ -63,7 +75,7 @@ public class ControlPanel extends VBox {
         lblCount.setFont(labelFont);
         countPanel.getChildren().addAll(lblCount, spinnerSpawnCount);
 
-        // Menu xổ xuống chọn loại xe chạy (Nạp đủ các option cũ của ông)
+        // Menu xổ xuống chọn loại xe chạy
         comboVehicleType = new ComboBox<>();
         comboVehicleType.getItems().addAll("All", "Car", "Motorbike", "Ambulance", "Fire Truck", "Bus");
         comboVehicleType.setValue("All");
@@ -75,6 +87,10 @@ public class ControlPanel extends VBox {
         lblType.setFont(labelFont);
         typePanel.getChildren().addAll(lblType, comboVehicleType);
 
+        // Cụm Chế độ đồ họa
+        btnRectangle = createStyledButton("Rectangle Mode", 160, btnHeight);
+        btnImage = createStyledButton("Image Mode", 160, btnHeight);
+
         // Cặp nút đôi Zoom đặt ngang nhau
         btnZoomIn = createStyledButton("Zoom In", 78, btnHeight);
         btnZoomOut = createStyledButton("Zoom Out", 78, btnHeight);
@@ -82,25 +98,36 @@ public class ControlPanel extends VBox {
         zoomPanel.setAlignment(Pos.CENTER);
         zoomPanel.getChildren().addAll(btnZoomIn, btnZoomOut);
 
-        // Sắp xếp bố cục theo thứ tự đệm khoảng trống y hệt file cũ
+        // ===============================================
+        // 2. SẮP XẾP BỐ CỤC LÊN SIDEBAR
+        // ===============================================
         this.getChildren().addAll(
+                // Gom 4 nút vẽ Map lên trên cùng
+                btnAddNode,
                 btnAddRoad,
                 btnRemoveNode,
+                btnLoadDefault,
                 createSeparatorSpace(10),
+
+                // Mấy cụm dưới giữ nguyên y hệt logic cũ
                 btnResume,
                 btnPause,
                 createSeparatorSpace(10),
+
                 btnSpawn,
                 countPanel,
                 typePanel,
                 createSeparatorSpace(10),
+
                 btnRectangle,
                 btnImage,
                 createSeparatorSpace(10),
+
                 zoomPanel
         );
     }
 
+    // Hàm tạo giao diện của ông (Giữ nguyên 100%)
     private Button createStyledButton(String text, double w, double h) {
         Button btn = new Button(text);
         btn.setPrefSize(w, h);
@@ -111,13 +138,22 @@ public class ControlPanel extends VBox {
         return btn;
     }
 
+    // Hàm đệm khoảng trống của ông (Giữ nguyên 100%)
     private VBox createSeparatorSpace(double height) {
         VBox spacer = new VBox();
         spacer.setPrefHeight(height);
         return spacer;
     }
 
+    // ==========================================
     // --- CÁC HÀM GETTER KẾT NỐI SỰ KIỆN SANG MAINLAUNCHER ---
+    // ==========================================
+
+    // Thêm 2 getter mới
+    public Button getBtnAddNode() { return btnAddNode; }
+    public Button getBtnLoadDefault() { return btnLoadDefault; }
+
+    // Đống getter cũ của ông
     public Button getBtnRemoveNode() { return btnRemoveNode; }
     public Button getBtnAddRoad() { return btnAddRoad; }
     public Button getBtnResume() { return btnResume; }
@@ -127,12 +163,6 @@ public class ControlPanel extends VBox {
     public Button getBtnSpawn() { return btnSpawn; }
     public Spinner<Integer> getSpinnerSpawnCount() { return spinnerSpawnCount; }
     public ComboBox<String> getComboVehicleType() { return comboVehicleType; }
-
-    public Button getBtnRectangle() {
-        return btnRectangle;
-    }
-
-    public Button getBtnImage() {
-        return btnImage;
-    }
+    public Button getBtnRectangle() { return btnRectangle; }
+    public Button getBtnImage() { return btnImage; }
 }

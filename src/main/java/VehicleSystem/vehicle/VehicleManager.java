@@ -83,16 +83,15 @@ public class VehicleManager {
     // LỆNH THẢ XE (SPAWN)
     // ==========================================
     public void spawnVehicle(String type) {
-        // Tìm tọa độ Node 1_0
-        Intersection startNode = null;
-        for (Intersection n : map.getIntersections()) {
-            if ("Node_1_0".equals(n.getId())) {
-                startNode = n;
-                break;
-            }
+        // 1. KIỂM TRA AN TOÀN: Nếu map chưa có ngã tư nào thì dừng lại, cấm đẻ xe
+        if (map.getIntersections().isEmpty()) {
+            System.out.println("⚠️ Bản đồ chưa có ngã tư nào! Hãy dùng công cụ Add Node để tạo điểm xuất phát trước.");
+            return;
         }
 
-        if (startNode == null) return;
+        // 2. LẤY NODE ĐẦU TIÊN TẠO RA (Vị trí 0) LÀM ĐIỂM XUẤT PHÁT
+        Intersection startNode = map.getIntersections().get(0);
+
         // Độ lệch tốc độ nhỏ để xe không chạy bằng khít nhau sau này
         double speedVariance = (random.nextDouble() * 1.0) - 0.5;
 
@@ -128,8 +127,8 @@ public class VehicleManager {
         }
 
         if (newVehicle != null) {
-            // 🛠️ MẸO CHIA LÀN: Lấy số lượng xe hiện tại chia lấy dư cho 6
-            // Xe 1 -> làn 0, Xe 2 -> làn 1, ... Xe 6 -> làn 5, Xe 7 quay lại làn 0.
+            // 🛠️ MẸO CHIA LÀN: Lấy số lượng xe hiện tại chia lấy dư cho 3
+            // Xe 1 -> làn 0, Xe 2 -> làn 1, Xe 3 -> làn 2, Xe 4 quay lại làn 0...
             int assignedLane = activeVehicles.size() % 3;
 
             newVehicle.setTargetNode(startNode);
