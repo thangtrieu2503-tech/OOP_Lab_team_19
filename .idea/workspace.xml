@@ -4,26 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="8cd28691-f9cf-4564-b7bb-1d06a98c30cf" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/java/UI/SoundManager.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/VehicleSystem/behavior/AggressiveBehavior.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/resources/images/ambulance.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/resources/images/bus.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/resources/images/car.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/resources/images/firetruck.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/resources/images/map.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/resources/images/motorbike.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/resources/sounds/ambulance_siren2.mp3" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/resources/sounds/car_horn.mp3" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/VehicleSystem/behavior/NormalBehavior.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/VehicleSystem/behavior/NormalBehavior.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/VehicleSystem/vehicle/Vehicle.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/VehicleSystem/vehicle/Vehicle.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/VehicleSystem/vehicle/VehicleManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/VehicleSystem/vehicle/VehicleManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/VehicleSystem/vehicle/type/Ambulance.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/VehicleSystem/vehicle/type/Ambulance.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/VehicleSystem/vehicle/type/Bus.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/VehicleSystem/vehicle/type/Bus.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/VehicleSystem/vehicle/type/Car.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/VehicleSystem/vehicle/type/Car.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/VehicleSystem/vehicle/type/FireTruck.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/VehicleSystem/vehicle/type/FireTruck.java" afterDir="false" />
-    </list>
+    <list default="true" id="8cd28691-f9cf-4564-b7bb-1d06a98c30cf" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
