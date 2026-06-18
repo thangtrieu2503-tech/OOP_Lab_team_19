@@ -137,7 +137,7 @@ public class AggressiveBehavior implements DrivingStrategy {
             double sideDist = dx * (-carDirY) + dy * carDirX;
 
             if (forwardDist > 0 && forwardDist < 80.0) {
-                double lateralSafe = (me.getWidth() / 2.0) + (other.getWidth() / 2.0) + 1.0;
+                double lateralSafe = (me.getWidth() / 2.0) + (other.getWidth() / 2.0) + 3.0;
                 if (Math.abs(sideDist) < lateralSafe) {
                     if (dist < minDistance) {
                         minDistance = dist;
@@ -157,7 +157,7 @@ public class AggressiveBehavior implements DrivingStrategy {
             double safeDist = (me.getLength() / 2.0) + (vehicleAhead.getLength() / 2.0);
 
             // 🚨 SỬA Ở ĐÂY: Chỉ bóp còi khi khoảng cách gần VÀ xe trước đang di chuyển
-            if (minDistance <= safeDist + 36.0 && vehicleAhead.getSpeed() > 0.1 && me.getSpeed() > 0.5) {
+            if (minDistance <= safeDist + 48.0 && vehicleAhead.getSpeed() > 0.1 && me.getSpeed() > 0.5) {
                 vehicleAhead.receiveHonk();
 
                 String typeName = me.getClass().getSimpleName();

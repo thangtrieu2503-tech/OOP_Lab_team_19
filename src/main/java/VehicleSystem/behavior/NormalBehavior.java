@@ -120,9 +120,12 @@ public class NormalBehavior implements DrivingStrategy {
                 }
             }
 
-            // Bắt vật cản chiếu thẳng mặt
+            // =========================================================
+            // 🚨 ĐÃ SỬA: Bắt vật cản chiếu thẳng mặt (Radar co giãn theo kích thước xe)
+            // =========================================================
             if (isSameDirection && forwardDist > 0 && forwardDist < 100.0) {
-                if (Math.abs(sideDist) < 18.0) {
+                double lateralSafe = (me.getWidth() / 2.0) + (other.getWidth() / 2.0) + 4.0;
+                if (Math.abs(sideDist) < lateralSafe) {
                     if (forwardDist < minDistance) {
                         minDistance = forwardDist;
                         obstacleAhead = true;
