@@ -5,9 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="8cd28691-f9cf-4564-b7bb-1d06a98c30cf" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/java/UI/ImageManager.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/UI/SimulationCanvas.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/UI/SimulationCanvas.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
