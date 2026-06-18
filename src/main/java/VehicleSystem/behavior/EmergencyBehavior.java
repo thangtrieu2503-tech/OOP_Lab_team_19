@@ -1,7 +1,6 @@
 package VehicleSystem.behavior;
 
 import VehicleSystem.vehicle.Vehicle;
-import VehicleSystem.vehicle.Vehicle.TurnDirection;
 import MapSystem.light.LightState;
 import MapSystem.light.TrafficController;
 
@@ -11,7 +10,7 @@ public class EmergencyBehavior implements DrivingStrategy {
 
     @Override
     public void drive(Vehicle me, List<Vehicle> allVehicles) {
-        double targetMaxSpeed = me.getBaseMaxSpeed() * 1.5; // Xe ưu tiên đi nhanh hơn
+        double targetMaxSpeed = me.getBaseMaxSpeed() * 1.2; // Xe ưu tiên đi nhanh hơn
         double targetAcceleration = 0.08;
         double carDirX = Math.cos(Math.toRadians(me.getAngle()));
         double carDirY = Math.sin(Math.toRadians(me.getAngle()));
@@ -58,11 +57,12 @@ public class EmergencyBehavior implements DrivingStrategy {
         // 🚀 PHẦN 2: RADAR TIA CHIẾU THẲNG & HÚ CÒI
         // =========================================================================
         boolean obstacleAhead = false;
+        boolean mustYieldAtIntersection = false; // 🚨 Cờ mới: Bắt buộc dừng ở ngã tư
         double minDistance = Double.MAX_VALUE;
         Vehicle vehicleAhead = null;
         int myLane = me.getCurrentLane();
 
-        boolean[] laneBlocked = {false, false, false}; // Mảng khảo sát làn đường
+        boolean[] laneBlocked = {false, false, false};
 
         for (Vehicle other : allVehicles) {
             if (other == me) continue;
@@ -72,12 +72,20 @@ public class EmergencyBehavior implements DrivingStrategy {
             double dist = Math.sqrt(dx * dx + dy * dy);
             if (dist > 180.0) continue; // Radar xa hơn
 
+            // =========================================================
+            // LỌC XE NGƯỢC CHIỀU (CHỐNG NHIỄU LÀN 0)
+            // =========================================================
+            double otherDirX = Math.cos(Math.toRadians(other.getAngle()));
+            double otherDirY = Math.sin(Math.toRadians(other.getAngle()));
+            double directionDotProduct = (carDirX * otherDirX) + (carDirY * otherDirY);
+            if (directionDotProduct < -0.5) continue;
+
             double forwardDist = dx * carDirX + dy * carDirY;
             double sideDist = dx * (-carDirY) + dy * carDirX;
             double angleDiff = Math.abs(me.getAngle() - other.getAngle());
             boolean isSameDirection = (angleDiff < 45 || angleDiff > 315);
 
-            // TIA CÒI HÚ: ÉP XE KHÁC DẠT LÀN (Chỉ có ở Emergency)
+            // TIA CÒI HÚ: ÉP XE KHÁC DẠT LÀN
             if (isSameDirection && forwardDist > 0 && forwardDist < 150.0) {
                 if (Math.abs(sideDist) < 25.0) {
                     other.setRequestedToYield(true);
@@ -92,9 +100,10 @@ public class EmergencyBehavior implements DrivingStrategy {
                 }
             }
 
-            // Bắt vật cản chiếu thẳng mặt
+            // Bắt vật cản chiếu thẳng mặt (Đã thêm radar co giãn theo xe bus)
             if (isSameDirection && forwardDist > 0 && forwardDist < 120.0) {
-                if (Math.abs(sideDist) < 18.0) {
+                double lateralSafe = (me.getWidth() / 2.0) + (other.getWidth() / 2.0) + 4.0;
+                if (Math.abs(sideDist) < lateralSafe) {
                     if (forwardDist < minDistance) {
                         minDistance = forwardDist;
                         obstacleAhead = true;
@@ -103,13 +112,23 @@ public class EmergencyBehavior implements DrivingStrategy {
                 }
             }
 
-            // Xử lý 2 xe ưu tiên đụng nhau
+            // 🚨 SỬA LỖI XUYÊN KHÔNG: Xử lý 2 xe ưu tiên đụng nhau ngã tư
             if (me.getTargetNode() != null && me.getTargetNode() == other.getTargetNode()) {
-                if (distToNode < 60.0 && dist < 50.0) {
-                    if (System.identityHashCode(me) < System.identityHashCode(other)) {
-                        obstacleAhead = true;
-                        vehicleAhead = other;
-                        minDistance = Math.min(minDistance, dist);
+                // Tăng khoảng cách nhận diện ngã tư lên 90px để kịp phanh từ xa
+                if (distToNode < 90.0 && dist < 80.0) {
+                    boolean isOtherEmergency = other.getType().equals("AMBULANCE") || other.getType().equals("FIRE_TRUCK");
+
+                    if (isOtherEmergency) {
+                        // Nếu 2 anh ưu tiên gặp nhau, anh nào ID nhỏ hơn thì nhường
+                        if (System.identityHashCode(me) < System.identityHashCode(other)) {
+                            mustYieldAtIntersection = true;
+                            minDistance = Math.min(minDistance, dist);
+                        }
+                    } else {
+                        // Nếu thằng kia là xe thường mà nó đang kẹt cứng giữa ngã tư (dist < 40) thì cũng phải phanh để khỏi tông
+                        if (dist < 40.0) {
+                            mustYieldAtIntersection = true;
+                        }
                     }
                 }
             }
@@ -118,7 +137,13 @@ public class EmergencyBehavior implements DrivingStrategy {
         // =========================================================================
         // 🚀 PHẦN 3: LÁCH LÀN VÀ PHANH CHỐNG ĐÈ XE
         // =========================================================================
-        if (obstacleAhead && vehicleAhead != null) {
+
+        // 🚨 NẾU PHẢI NHƯỜNG NGÃ TƯ -> ĐẠP PHANH CHẾT TẠI CHỖ
+        if (mustYieldAtIntersection) {
+            targetAcceleration = -4.0;
+            targetMaxSpeed = 0;
+        }
+        else if (obstacleAhead && vehicleAhead != null) {
             double safeDist = (me.getLength() / 2.0) + (vehicleAhead.getLength() / 2.0);
             boolean isChangingLane = false;
 
@@ -134,10 +159,10 @@ public class EmergencyBehavior implements DrivingStrategy {
                 }
             }
 
-            // 🚨 SỬA LỖI ĐÈ NHAU
+            // SỬA LỖI ĐÈ NHAU CÙNG LÀN
             if (minDistance <= safeDist + 5.0) {
                 targetAcceleration = -5.0;
-                targetMaxSpeed = 0; // Kể cả xe ưu tiên, nếu sát đít quá cũng phải dừng ga tiến lên
+                targetMaxSpeed = 0;
             } else if (minDistance <= safeDist + 25.0) {
                 if (isChangingLane) {
                     targetAcceleration = 0.0;
@@ -155,15 +180,5 @@ public class EmergencyBehavior implements DrivingStrategy {
         if (targetMaxSpeed <= 0 && me.getSpeed() > 0) me.setMaxSpeed(0);
         else me.setMaxSpeed(targetMaxSpeed);
         me.setAcceleration(targetAcceleration);
-    }
-
-    private int getTurnPriority(Vehicle v) {
-        if (v.getTurnDirection() == null) return 2;
-        switch (v.getTurnDirection()) {
-            case RIGHT: return 3;
-            case STRAIGHT: return 2;
-            case LEFT: return 1;
-            default: return 0;
-        }
     }
 }
