@@ -6,6 +6,8 @@
   <component name="ChangeListManager">
     <list default="true" id="8cd28691-f9cf-4564-b7bb-1d06a98c30cf" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/VehicleSystem/behavior/AggressiveBehavior.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/VehicleSystem/behavior/AggressiveBehavior.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/images/map.png" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

@@ -8,7 +8,6 @@ import java.util.List;
 
 public class AggressiveBehavior implements DrivingStrategy {
 
-    // Vẫn giữ hàm này để lỡ gặp xe ưu tiên (cứu thương) thì nó vẫn phải tém lại và nhường đường
     private void handleYielding(Vehicle me) {
         if (!me.isRequestedToYield()) return;
 
@@ -32,15 +31,12 @@ public class AggressiveBehavior implements DrivingStrategy {
         boolean isRedLightAhead = false;
         double targetAcceleration = 0.04;
 
-        // Trẻ trâu thì đạp ga nhanh hơn xe thường một tí (10%) cho đúng chất Aggressive
-        double targetMaxSpeed = me.getBaseMaxSpeed() * 1.1;
+        // Trẻ trâu thì đạp ga nhanh hơn 20%
+        double targetMaxSpeed = me.getBaseMaxSpeed() * 1.2;
 
         double carDirX = Math.cos(Math.toRadians(me.getAngle()));
         double carDirY = Math.sin(Math.toRadians(me.getAngle()));
 
-        // =========================================================================
-        // 🚀 THÔNG TIN DÙNG CHUNG: VỊ TRÍ TỚI NGÃ TƯ
-        // =========================================================================
         boolean isInsideIntersection = false;
         double distToNode = 0.0;
         double boxSize = 90.0;
@@ -55,9 +51,6 @@ public class AggressiveBehavior implements DrivingStrategy {
             isInsideIntersection = inTargetBox;
         }
 
-        // =========================================================================
-        // 🚀 PHẦN 1: LOGIC ĐÈN GIAO THÔNG (Vẫn ngoan ngoãn dừng đèn đỏ)
-        // =========================================================================
         if (me.getTargetNode() != null && me.getTargetNode().getTrafficController() != null) {
             TrafficController controller = me.getTargetNode().getTrafficController();
 
@@ -65,9 +58,7 @@ public class AggressiveBehavior implements DrivingStrategy {
                 int lightIndex = (Math.abs(me.getY() - me.getTargetNode().getPosition().getY()) >
                         Math.abs(me.getX() - me.getTargetNode().getPosition().getX())) ? 1 : 0;
 
-                if (lightIndex >= controller.getLights().size()) {
-                    lightIndex = 0;
-                }
+                if (lightIndex >= controller.getLights().size()) lightIndex = 0;
 
                 LightState currentState = controller.getLights().get(lightIndex).getCurrentState();
 
@@ -100,9 +91,6 @@ public class AggressiveBehavior implements DrivingStrategy {
             return;
         }
 
-        // =========================================================================
-        // 🚀 PHẦN 2: RADAR QUÉT VẬT CẢN
-        // =========================================================================
         boolean obstacleAhead = false;
         double minDistance = Double.MAX_VALUE;
         Vehicle vehicleAhead = null;
@@ -150,26 +138,19 @@ public class AggressiveBehavior implements DrivingStrategy {
             }
         }
 
-        // =========================================================================
-        // 🚀 PHẦN 3: BÁM ĐUÔI & ÉP LÀN (TÍCH HỢP CÒI Ô TÔ)
-        // =========================================================================
         if (obstacleAhead && vehicleAhead != null) {
             double safeDist = (me.getLength() / 2.0) + (vehicleAhead.getLength() / 2.0);
 
-            // 🚨 ĐIỂM NHẤN: Cứ lởn vởn trong phạm vi 60px phía trước là nã còi ép dạt làn
-            if (minDistance <= safeDist + 60.0) {
-                // Phát tín hiệu nội bộ để xe trước dạt sang làn khác
+            // 🚨 SỬA Ở ĐÂY: Chỉ bóp còi khi khoảng cách gần VÀ xe trước đang di chuyển
+            if (minDistance <= safeDist + 36.0 && vehicleAhead.getSpeed() > 0.1) {
                 vehicleAhead.receiveHonk();
 
-                // 📢 LỌC XE: Chỉ có Car và Bus mới phát ra âm thanh "pim pim" thật sự
                 String typeName = me.getClass().getSimpleName();
                 if (typeName.equals("Car") || typeName.equals("Bus")) {
-                    // Nếu dòng này báo đỏ (thiếu import), ông bấm Alt+Enter để import UI.SoundManager nhé
                     UI.SoundManager.playCarHorn();
                 }
             }
 
-            // BƯỚC 1: XỬ LÝ CHÂN PHANH
             if (minDistance <= safeDist + 5.0) {
                 targetAcceleration = -3.0;
                 targetMaxSpeed = 0;
@@ -192,9 +173,7 @@ public class AggressiveBehavior implements DrivingStrategy {
                 targetMaxSpeed = Math.min(me.getBaseMaxSpeed(), vehicleAhead.getSpeed() + 0.5);
             }
 
-            // BƯỚC 2: TỰ LÁCH LÀN (Nếu bóp còi mà xe trước chưa kịp dạt thì mình tự lách)
             boolean isSafeToChangeLane = !isInsideIntersection && distToNode > 95.0;
-
             if (isSafeToChangeLane && me.getSpeed() > 0.1) {
                 if (canMoveLeft) {
                     me.changeLane(myLane - 1);
@@ -202,14 +181,10 @@ public class AggressiveBehavior implements DrivingStrategy {
                     me.changeLane(myLane + 1);
                 }
             }
-
         } else {
             me.stuckTime = 0;
         }
 
-        // =========================================================================
-        // 🚀 PHẦN 4: CHỐT THÔNG SỐ XUỐNG ĐỘNG CƠ
-        // =========================================================================
         me.setMaxSpeed(targetMaxSpeed);
         me.setAcceleration(targetAcceleration);
     }
