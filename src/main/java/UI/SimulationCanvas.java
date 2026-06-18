@@ -12,9 +12,8 @@ import MapSystem.map.Road;
 import MapSystem.map.RoadGraph;
 import VehicleSystem.vehicle.Vehicle;
 import VehicleSystem.vehicle.VehicleManager;
-
-// ĐÃ THÊM IMPORT ĐỂ NHẬN DIỆN ĐÈN CỦA ÔNG THẮNG
 import MapSystem.light.TrafficLight;
+
 import VehicleSystem.vehicle.type.Ambulance;
 import VehicleSystem.vehicle.type.Bus;
 import VehicleSystem.vehicle.type.FireTruck;
@@ -25,7 +24,6 @@ public class SimulationCanvas extends Canvas {
     private RoadGraph map;
     private VehicleManager vehicleManager;
 
-    // Các biến phục vụ Camera, Zoom & Kéo thả chuột di chuyển sa hình
     private double scale = 1.0;
     private double panOffsetX = 0.0;
     private double panOffsetY = 0.0;
@@ -33,7 +31,6 @@ public class SimulationCanvas extends Canvas {
 
     private boolean isRectangleMode = true;
 
-    // Bộ nhớ đệm lưu ảnh xe cộ bốc trực tiếp từ tài nguyên hệ thống
     private javafx.scene.image.Image imgCar;
     private javafx.scene.image.Image imgMotorbike;
     private javafx.scene.image.Image imgAmbulance;
@@ -45,7 +42,6 @@ public class SimulationCanvas extends Canvas {
         this.map = map;
         this.vehicleManager = vehicleManager;
 
-        // Sự kiện click giữ chuột để dịch chuyển (Pan) bản đồ
         this.setOnMousePressed(e -> {
             dragStartX = e.getX() - panOffsetX;
             dragStartY = e.getY() - panOffsetY;
@@ -57,15 +53,16 @@ public class SimulationCanvas extends Canvas {
             render();
         });
 
-        // Tải ảnh từ thư mục tài nguyên tương thích với cấu hình pom chuẩn Maven
         try {
-            imgCar = new javafx.scene.image.Image(getClass().getResourceAsStream("/image/car.png"));
-            imgMotorbike = new javafx.scene.image.Image(getClass().getResourceAsStream("/image/motorbike.png"));
-            imgAmbulance = new javafx.scene.image.Image(getClass().getResourceAsStream("/image/ambulance.png"));
-            imgFireTruck = new javafx.scene.image.Image(getClass().getResourceAsStream("/image/firetruck.png"));
-            imgBus = new javafx.scene.image.Image(getClass().getResourceAsStream("/image/bus.png"));
+            imgCar = new javafx.scene.image.Image(new java.io.File("src/main/resources/images/car.png").toURI().toString());
+            imgMotorbike = new javafx.scene.image.Image(new java.io.File("src/main/resources/images/motorbike.png").toURI().toString());
+            imgAmbulance = new javafx.scene.image.Image(new java.io.File("src/main/resources/images/ambulance.png").toURI().toString());
+            imgFireTruck = new javafx.scene.image.Image(new java.io.File("src/main/resources/images/firetruck.png").toURI().toString());
+            imgBus = new javafx.scene.image.Image(new java.io.File("src/main/resources/images/bus.png").toURI().toString());
+
+            System.out.println("✅ Đã nạp thành công toàn bộ ảnh xe!");
         } catch (Exception e) {
-            System.out.println("[⚠️ Đồ họa] Không nạp được ảnh Sprite xe, tự động dùng hình hộp phẳng.");
+            System.out.println("[⚠️ Đồ họa] Không nạp được ảnh Sprite xe: " + e.getMessage());
         }
     }
 
@@ -82,68 +79,51 @@ public class SimulationCanvas extends Canvas {
         render();
     }
 
-    // ===============================================================
-    // 🛠️ HÀM BỔ TRỢ 1: VẼ CHI TIẾT MỘT CỤM ĐÈN TÍN HIỆU + COUNTDOWN
-    // Đã sửa thành kiểu String (displayTimer) để nhận chuỗi của backend
-    // ===============================================================
     private void drawSingleLight(GraphicsContext gc, double x, double y, double d, String state, boolean isHorizontal, String displayTimer) {
         double gap = Math.max(1, d / 4.0);
-        Color off = Color.web("#3C3C3C"); // Màu đèn tắt
+        Color off = Color.web("#3C3C3C");
 
         if (isHorizontal) {
-            // Vẽ hộp nền đen bọc ngoài (Ngang)
             gc.setFill(Color.web("#141414"));
             gc.fillRoundRect(x - gap, y - gap, (d + gap) * 4.0 + gap, d + (gap * 2.0), gap, gap);
 
-            // Đổ màu 3 mắt đèn tròn
             gc.setFill(state.equalsIgnoreCase("RED") ? Color.RED : off); gc.fillOval(x, y, d, d);
             gc.setFill(state.equalsIgnoreCase("YELLOW") ? Color.YELLOW : off); gc.fillOval(x + d + gap, y, d, d);
             gc.setFill(state.equalsIgnoreCase("GREEN") ? Color.GREEN : off); gc.fillOval(x + (d + gap) * 2.0, y, d, d);
 
-            // Ô hiển thị số Countdown điện tử cuối hộp đèn
             double boxX = x + (d + gap) * 3.0;
             gc.setFill(Color.BLACK); gc.fillRect(boxX, y, d, d);
             gc.setFill(state.equalsIgnoreCase("RED") ? Color.RED : (state.equalsIgnoreCase("GREEN") ? Color.GREEN : Color.YELLOW));
             gc.setFont(javafx.scene.text.Font.font("Arial", javafx.scene.text.FontWeight.BOLD, Math.max(d - 1, 9)));
-            gc.fillText(displayTimer, boxX + (1 * scale), y + d - (1 * scale)); // CẮM THỜI GIAN THẬT VÀO ĐÂY
+            gc.fillText(displayTimer, boxX + (1 * scale), y + d - (1 * scale));
         } else {
-            // Vẽ hộp nền đen bọc ngoài (Dọc)
             gc.setFill(Color.web("#141414"));
             gc.fillRoundRect(x - gap, y - gap, d + (gap * 2.0), (d + gap) * 4.0 + gap, gap, gap);
 
-            // Ô hiển thị số Countdown điện tử đặt ở đầu hộp đèn dọc
             gc.setFill(Color.BLACK); gc.fillRect(x, y, d, d);
             gc.setFill(state.equalsIgnoreCase("RED") ? Color.RED : (state.equalsIgnoreCase("GREEN") ? Color.GREEN : Color.YELLOW));
             gc.setFont(javafx.scene.text.Font.font("Arial", javafx.scene.text.FontWeight.BOLD, Math.max(d - 1, 9)));
-            gc.fillText(displayTimer, x + (1 * scale), y + d - (1 * scale)); // CẮM THỜI GIAN THẬT VÀO ĐÂY
+            gc.fillText(displayTimer, x + (1 * scale), y + d - (1 * scale));
 
-            // Đổ màu 3 mắt đèn tròn ở dưới
             gc.setFill(state.equalsIgnoreCase("RED") ? Color.RED : off); gc.fillOval(x, y + d + gap, d, d);
             gc.setFill(state.equalsIgnoreCase("YELLOW") ? Color.YELLOW : off); gc.fillOval(x, y + (d + gap) * 2.0, d, d);
             gc.setFill(state.equalsIgnoreCase("GREEN") ? Color.GREEN : off); gc.fillOval(x, y + (d + gap) * 3.0, d, d);
         }
     }
 
-    // ===============================================================
-    // 🛠️ HÀM BỔ TRỢ 2: TỰ ĐỘNG ĐỊNH VỊ VÀ CẮM ĐÈN TẠI CÁC ĐẦU NÚT GIAO LỘ
-    // Đã chỉnh sửa: Treo đèn trên cao, nằm ngay giữa 3 làn xe chạy (Bên phải tim đường)
-    // ===============================================================
     private void drawAllTrafficLights(GraphicsContext gc, List<Intersection> currentNodes) {
-        // Kích thước mắt đèn co giãn động theo tầng Zoom
         double dynamicD = 11.0 * scale; if (dynamicD < 6) dynamicD = 6;
         double gap = Math.max(1, dynamicD / 4.0);
         double lightBoxLength = (dynamicD + gap) * 4.0 + gap;
 
-        // 🛠️ TÍNH TOÁN KHOẢNG CÁCH TREO ĐÈN (Nằm giữa 3 làn bên phải)
         double roadHalfWidth = (160.0 * scale) / 2.0;
-        double laneCenter = roadHalfWidth / 2.0; // Tâm của 3 làn xe bên phải (khoảng offset 40px gốc)
-        double stopLine = roadHalfWidth + (2.0 * scale); // Đặt sát vạch dừng ngã tư
+        double laneCenter = roadHalfWidth / 2.0;
+        double stopLine = roadHalfWidth + (2.0 * scale);
 
         for (Intersection n1 : currentNodes) {
             double cx = n1.getPosition().getX() * scale + panOffsetX;
             double cy = n1.getPosition().getY() * scale + panOffsetY;
 
-            // Quét ma trận đồ thị để kiểm tra hướng kết nối của đường sá
             boolean hasRight = false; boolean hasLeft = false; boolean hasBottom = false; boolean hasTop = false;
             for (Intersection n2 : currentNodes) {
                 if (n2.getPosition().getX() > n1.getPosition().getX() + 5 && Math.abs(n2.getPosition().getY() - n1.getPosition().getY()) < 5) hasRight = true;
@@ -152,42 +132,22 @@ public class SimulationCanvas extends Canvas {
                 if (n2.getPosition().getY() < n1.getPosition().getY() - 5 && Math.abs(n2.getPosition().getX() - n1.getPosition().getX()) < 5) hasTop = true;
             }
 
-            // ---- KẾT NỐI VỚI BACKEND ĐÈN THẬT ----
             var controller = n1.getTrafficController();
-            // Nếu tại ngã tư này chưa được cắm TrafficController, hoặc Controller chưa có đèn -> Bỏ qua không vẽ
             if (controller == null || controller.getLights().isEmpty()) continue;
 
             List<TrafficLight> realLights = controller.getLights();
-
-            // Lấy thông tin đèn từ danh sách của ông Thắng
             TrafficLight lightEW = realLights.get(0);
             TrafficLight lightNS = realLights.size() > 1 ? realLights.get(1) : lightEW;
 
             String stateEW = lightEW.getCurrentState().name();
-            String timerEW = lightEW.getDisplayTimer(); // Sẽ trả về chuỗi rỗng "" nếu > 10s (Ẩn UI)
-
+            String timerEW = lightEW.getDisplayTimer();
             String stateNS = lightNS.getCurrentState().name();
             String timerNS = lightNS.getDisplayTimer();
 
-            // =======================================================
-            // 🛠️ TREO ĐÈN TRÊN CAO Ở CHÍNH GIỮA CÁC LÀN XE BÊN PHẢI
-            // =======================================================
-            if (hasTop) {
-                // Xe từ TRÊN xuống (Đi lề trái màn hình) -> Đèn ngang treo ở nửa trái
-                drawSingleLight(gc, cx - laneCenter - (lightBoxLength / 2.0), cy - stopLine - dynamicD, dynamicD, stateNS, true, timerNS);
-            }
-            if (hasBottom) {
-                // Xe từ DƯỚI lên (Đi lề phải màn hình) -> Đèn ngang treo ở nửa phải
-                drawSingleLight(gc, cx + laneCenter - (lightBoxLength / 2.0), cy + stopLine, dynamicD, stateNS, true, timerNS);
-            }
-            if (hasLeft) {
-                // Xe từ TRÁI sang (Đi nửa dưới màn hình) -> Đèn dọc treo ở nửa dưới
-                drawSingleLight(gc, cx - stopLine - dynamicD, cy + laneCenter - (lightBoxLength / 2.0), dynamicD, stateEW, false, timerEW);
-            }
-            if (hasRight) {
-                // Xe từ PHẢI sang (Đi nửa trên màn hình) -> Đèn dọc treo ở nửa trên
-                drawSingleLight(gc, cx + stopLine, cy - laneCenter - (lightBoxLength / 2.0), dynamicD, stateEW, false, timerEW);
-            }
+            if (hasTop) drawSingleLight(gc, cx - laneCenter - (lightBoxLength / 2.0), cy - stopLine - dynamicD, dynamicD, stateNS, true, timerNS);
+            if (hasBottom) drawSingleLight(gc, cx + laneCenter - (lightBoxLength / 2.0), cy + stopLine, dynamicD, stateNS, true, timerNS);
+            if (hasLeft) drawSingleLight(gc, cx - stopLine - dynamicD, cy + laneCenter - (lightBoxLength / 2.0), dynamicD, stateEW, false, timerEW);
+            if (hasRight) drawSingleLight(gc, cx + stopLine, cy - laneCenter - (lightBoxLength / 2.0), dynamicD, stateEW, false, timerEW);
         }
     }
 
@@ -197,21 +157,18 @@ public class SimulationCanvas extends Canvas {
 
         double panelWidth = this.getWidth();
         double panelHeight = this.getHeight();
+        List<Intersection> currentNodes = map.getIntersections();
 
         // ===============================================================
-        // LAYER 1: VẼ NỀN ĐẤT XANH NHẠT MƯỢT MÀ
+        // 🟩 VẼ ĐƯỜNG BẰNG CODE (LUÔN LUÔN VẼ)
         // ===============================================================
         gc.setFill(Color.web("#E1F0E5"));
         gc.fillRect(0, 0, panelWidth, panelHeight);
 
-        // GIỮ NGUYÊN TỶ LỆ PHOM BÙNG BINH GỐC ĐỂ KHÔNG BỊ NUỐT NGÃ TƯ
         double circleDiameter = 160.0 * scale;
         double roadWidth = 160.0 * scale;
         Color roadColor = Color.web("#555555");
 
-        List<Intersection> currentNodes = map.getIntersections();
-
-        // ================= LAYER 1.1: TRẢI NHỰA ĐƯỜNG LIỀN MẠCH =================
         for (Road road : map.getRoads()) {
             double sx = road.getStartNode().getPosition().getX() * scale + panOffsetX;
             double sy = road.getStartNode().getPosition().getY() * scale + panOffsetY;
@@ -224,7 +181,6 @@ public class SimulationCanvas extends Canvas {
             gc.strokeLine(sx, sy, ex, ey);
         }
 
-        // Đổ móng vòng tròn xám bùng binh tại ngã tư
         for (Intersection node : currentNodes) {
             double cx = node.getPosition().getX() * scale + panOffsetX;
             double cy = node.getPosition().getY() * scale + panOffsetY;
@@ -232,149 +188,85 @@ public class SimulationCanvas extends Canvas {
             gc.fillOval(cx - circleDiameter / 2.0, cy - circleDiameter / 2.0, circleDiameter, circleDiameter);
         }
 
-        // ===============================================================
-        // LAYER 1.5: VẼ ĐÈ KHỐI NỀN ĐẤT CẠNH TRÒN BO GÓC KHÍT BIÊN ĐƯỜNG
-        // ===============================================================
         gc.setFill(Color.web("#E1F0E5"));
-
-        Intersection n00 = null, n01 = null, n02 = null;
-        Intersection n10 = null, n11 = null, n12 = null;
-        Intersection n20 = null, n21 = null, n22 = null;
-
+        Intersection n00 = null, n01 = null, n02 = null, n10 = null, n11 = null, n12 = null, n20 = null, n21 = null, n22 = null;
         for (Intersection n : currentNodes) {
-            if (n.getId().equals("Node_0_0")) n00 = n;
-            if (n.getId().equals("Node_0_1")) n01 = n;
-            if (n.getId().equals("Node_0_2")) n02 = n;
-            if (n.getId().equals("Node_1_0")) n10 = n;
-            if (n.getId().equals("Node_1_1")) n11 = n;
-            if (n.getId().equals("Node_1_2")) n12 = n;
-            if (n.getId().equals("Node_2_0")) n20 = n;
-            if (n.getId().equals("Node_2_1")) n21 = n;
-            if (n.getId().equals("Node_2_2")) n22 = n;
+            if (n.getId().equals("Node_0_0")) n00 = n; if (n.getId().equals("Node_0_1")) n01 = n; if (n.getId().equals("Node_0_2")) n02 = n;
+            if (n.getId().equals("Node_1_0")) n10 = n; if (n.getId().equals("Node_1_1")) n11 = n; if (n.getId().equals("Node_1_2")) n12 = n;
+            if (n.getId().equals("Node_2_0")) n20 = n; if (n.getId().equals("Node_2_1")) n21 = n; if (n.getId().equals("Node_2_2")) n22 = n;
         }
 
         double rOffset = roadWidth / 2.0;
-        double blockCorner = 35.0 * scale; // Cạnh tròn mềm mại lọt lòng giữa các trục lộ
+        double blockCorner = 35.0 * scale;
 
         if (n00 != null && n11 != null && n22 != null) {
-            double x0 = n00.getPosition().getX() * scale + panOffsetX;
-            double x1 = n01.getPosition().getX() * scale + panOffsetX;
-            double x2 = n02.getPosition().getX() * scale + panOffsetX;
+            double x0 = n00.getPosition().getX() * scale + panOffsetX; double x1 = n01.getPosition().getX() * scale + panOffsetX; double x2 = n02.getPosition().getX() * scale + panOffsetX;
+            double y0 = n00.getPosition().getY() * scale + panOffsetY; double y1 = n10.getPosition().getY() * scale + panOffsetY; double y2 = n20.getPosition().getY() * scale + panOffsetY;
 
-            double y0 = n00.getPosition().getY() * scale + panOffsetY;
-            double y1 = n10.getPosition().getY() * scale + panOffsetY;
-            double y2 = n20.getPosition().getY() * scale + panOffsetY;
-
-            // Ô trống 1: Trên - Trái
-            double xA = x0 + rOffset; double yA = y0 + rOffset;
-            double wA = (x1 - rOffset) - xA; double hA = (y1 - rOffset) - yA;
+            double xA = x0 + rOffset; double yA = y0 + rOffset; double wA = (x1 - rOffset) - xA; double hA = (y1 - rOffset) - yA;
             if (wA > 0 && hA > 0) gc.fillRoundRect(xA, yA, wA, hA, blockCorner, blockCorner);
 
-            // Ô trống 2: Trên - Phải
-            double xB = x1 + rOffset; double yB = y0 + rOffset;
-            double wB = (x2 - rOffset) - xB; double hB = (y1 - rOffset) - yB;
+            double xB = x1 + rOffset; double yB = y0 + rOffset; double wB = (x2 - rOffset) - xB; double hB = (y1 - rOffset) - yB;
             if (wB > 0 && hB > 0) gc.fillRoundRect(xB, yB, wB, hB, blockCorner, blockCorner);
 
-            // Ô trống 3: Dưới - Trái
-            double xC = x0 + rOffset; double yC = y1 + rOffset;
-            double wC = (x1 - rOffset) - xC; double hC = (y2 - rOffset) - yC;
+            double xC = x0 + rOffset; double yC = y1 + rOffset; double wC = (x1 - rOffset) - xC; double hC = (y2 - rOffset) - yC;
             if (wC > 0 && hC > 0) gc.fillRoundRect(xC, yC, wC, hC, blockCorner, blockCorner);
 
-            // Ô trống 4: Dưới - Phải
-            double xD = x1 + rOffset; double yD = y1 + rOffset;
-            double wD = (x2 - rOffset) - xD; double hD = (y2 - rOffset) - yD;
+            double xD = x1 + rOffset; double yD = y1 + rOffset; double wD = (x2 - rOffset) - xD; double hD = (y2 - rOffset) - yD;
             if (wD > 0 && hD > 0) gc.fillRoundRect(xD, yD, wD, hD, blockCorner, blockCorner);
         }
 
-        // ===============================================================
-        // LAYER 2: VẼ VẠCH KẺ LÀN (ĐẠI LỘ MỖI BÊN CÂN ĐỐI 3 LÀN TĂM TẮP)
-        // ===============================================================
         for (Road road : map.getRoads()) {
             double sx = road.getStartNode().getPosition().getX() * scale + panOffsetX;
             double sy = road.getStartNode().getPosition().getY() * scale + panOffsetY;
             double ex = road.getEndNode().getPosition().getX() * scale + panOffsetX;
             double ey = road.getEndNode().getPosition().getY() * scale + panOffsetY;
 
-            double dx = ex - sx;
-            double dy = ey - sy;
-            double len = Math.sqrt(dx * dx + dy * dy);
-
+            double dx = ex - sx; double dy = ey - sy; double len = Math.sqrt(dx * dx + dy * dy);
             if (len == 0) continue;
 
-            double ux = dx / len;
-            double uy = dy / len;
-
-            // Chặn đầu vạch khít rìa bùng binh gốc
+            double ux = dx / len; double uy = dy / len;
             double rStop = circleDiameter / 2.0;
-            double cutSx = sx + ux * rStop;
-            double cutSy = sy + uy * rStop;
-            double cutEx = ex - ux * rStop;
-            double cutEy = ey - uy * rStop;
+            double cutSx = sx + ux * rStop; double cutSy = sy + uy * rStop;
+            double cutEx = ex - ux * rStop; double cutEy = ey - uy * rStop;
 
-            // 1. Vẽ vạch vàng liền chính giữa tim đường đại lộ
             gc.setStroke(Color.web("#FFC107"));
             gc.setLineWidth(2.5 * scale);
             gc.strokeLine(cutSx, cutSy, cutEx, cutEy);
 
-            // 2. Cấu hình vạch đứt trắng chia làn xe chạy
-            gc.setStroke(Color.WHITE);
-            gc.setLineWidth(1.2 * scale);
-            gc.setLineDashes(10 * scale, 10 * scale);
+            gc.setStroke(Color.WHITE); gc.setLineWidth(1.2 * scale); gc.setLineDashes(10 * scale, 10 * scale);
+            double nx = -uy; double ny = ux;
+            double singleLaneW = (80.0 * scale) / 3.0; double lane1 = singleLaneW; double lane2 = singleLaneW * 2.0;
 
-            // Vector pháp tuyến vuông góc trục đường để tịnh tiến dạt làn đối xứng
-            double nx = -uy;
-            double ny = ux;
-
-            // Nửa mặt đường nhựa = 80px gốc. Chia 3 làn bằng nhau tuyệt đối = 26.66px
-            double singleLaneW = (80.0 * scale) / 3.0;
-            double lane1 = singleLaneW;
-            double lane2 = singleLaneW * 2.0;
-
-            // ---- VẼ VẠCH ĐỨT CHO BÊN PHẢI TRỤC VÀNG (Chiều đi) ----
-            gc.strokeLine(cutSx + nx * lane1,   cutSy + ny * lane1,   cutEx + nx * lane1,   cutEy + ny * lane1);
-            gc.strokeLine(cutSx + nx * lane2,   cutSy + ny * lane2,   cutEx + nx * lane2,   cutEy + ny * lane2);
-
-            // ---- VẼ VẠCH ĐỨT CHO BÊN TRÁI TRỤC VÀNG (Chiều về) ----
-            gc.strokeLine(cutSx - nx * lane1,   cutSy - ny * lane1,   cutEx - nx * lane1,   cutEy - ny * lane1);
-            gc.strokeLine(cutSx - nx * lane2,   cutSy - ny * lane2,   cutEx - nx * lane2,   cutEy - ny * lane2);
-
+            gc.strokeLine(cutSx + nx * lane1, cutSy + ny * lane1, cutEx + nx * lane1, cutEy + ny * lane1);
+            gc.strokeLine(cutSx + nx * lane2, cutSy + ny * lane2, cutEx + nx * lane2, cutEy + ny * lane2);
+            gc.strokeLine(cutSx - nx * lane1, cutSy - ny * lane1, cutEx - nx * lane1, cutEy - ny * lane1);
+            gc.strokeLine(cutSx - nx * lane2, cutSy - ny * lane2, cutEx - nx * lane2, cutEy - ny * lane2);
             gc.setLineDashes((double[]) null);
         }
 
-        // ================= LAYER 3: VẼ ĐẢO CỎ VÀ BO VIỀN TÂM NGÃ TƯ =================
         for (Intersection node : currentNodes) {
             double cx = node.getPosition().getX() * scale + panOffsetX;
             double cy = node.getPosition().getY() * scale + panOffsetY;
-
-            // Đảo cỏ xanh tròn gốc thon thả (centerIslandD = 60px)
             gc.setFill(Color.web("#28A745"));
             double centerIslandD = 60.0 * scale;
             gc.fillOval(cx - centerIslandD / 2.0, cy - centerIslandD / 2.0, centerIslandD, centerIslandD);
-
-            // Viền trắng mảnh quanh đảo cỏ cực sắc nét
-            gc.setStroke(Color.WHITE);
-            gc.setLineWidth(2.0 * scale);
+            gc.setStroke(Color.WHITE); gc.setLineWidth(2.0 * scale);
             gc.strokeOval(cx - centerIslandD / 2.0, cy - centerIslandD / 2.0, centerIslandD, centerIslandD);
-
-            // 🛠️ DÒNG NÀY ĐANG VẼ CHỮ "Node_x_y" LÊN MÀN HÌNH
-            // Ông chỉ cần thêm // vào trước dòng dưới đây để ẩn chữ đi:
-            // gc.fillText(node.getId(), cx + (35 * scale), cy - (35 * scale));
         }
 
         // ===============================================================
-        // 🛠️ LAYER 3.5: VẼ ĐÈ HỆ THỐNG ĐÈN GIAO THÔNG CÓ ĐẾM NGƯỢC COUNTDOWN
-        // Đã tự động gọi hàm drawAllTrafficLights nối chuẩn với Backend
+        // 🚥 VẼ ĐÈN GIAO THÔNG CÓ COUNTDOWN
         // ===============================================================
         drawAllTrafficLights(gc, currentNodes);
 
         // ===============================================================
-        // LAYER 4: VẼ XE CỘ - ĐỒNG BỘ CẤU TRÚC TRANSLATE + ROTATE GỐC
+        // 🚗 VẼ XE CỘ (LÚC NÀY NÚT BẤM CHỈ CÓ TÁC DỤNG VỚI XE)
         // ===============================================================
         for (Vehicle v : vehicleManager.getVehicles()) {
             double vx = v.getPosition().getX() * scale + panOffsetX;
             double vy = v.getPosition().getY() * scale + panOffsetY;
 
-            // Kích thước xe bốc động theo logic lõi vật lý của nhóm ông
             double w = v.getWidth() * scale;
             double h = v.getLength() * scale;
 
@@ -390,27 +282,25 @@ public class SimulationCanvas extends Canvas {
             double angle = v.getAngle();
 
             gc.save();
-            // ĐƯA TÂM VẼ VỀ CHÍNH GIỮA TỌA ĐỘ XE, SAU ĐÓ XOAY (Y hệt hàm gốc giúp nhận diện cua rẽ)
             gc.translate(vx, vy);
             gc.rotate(angle);
 
+            // TÁCH CHẾ ĐỘ: Nếu đang chọn RectangleMode HOẶC xe chưa load được ảnh -> Vẽ hình hộp phẳng
             if (isRectangleMode || activeSprite == null) {
-                // CHẾ ĐỘ 1: Vẽ hình hộp phẳng bo góc mảnh kèm viền (Áp scale hiển thị)
                 gc.setFill(rectColor);
                 gc.setStroke(Color.BLACK);
                 gc.setLineWidth(1.0 * scale);
                 gc.fillRoundRect(-h / 2.0, -w / 2.0, h, w, 4 * scale, 4 * scale);
                 gc.strokeRoundRect(-h / 2.0, -w / 2.0, h, w, 4 * scale, 4 * scale);
 
-                // Kính chắn gió ở phần mũi xe (Mũi xe hướng về phía dương của trục X)
                 gc.setFill(Color.web("#1A1C20"));
                 gc.fillRoundRect(h / 2.0 - (8 * scale), -w / 2.0 + (2 * scale), 6 * scale, w - (4 * scale), 2 * scale, 2 * scale);
             } else {
-                // CHẾ ĐỘ 2: IN ẢNH SPRITE THẬT LÊN CANVAS THEO TÂM XOAY CHUẨN VẬT LÝ (-h/2, -w/2)
+                // CHẾ ĐỘ IMAGE: In ảnh xe thật ra đường
                 gc.drawImage(activeSprite, -h / 2.0, -w / 2.0, h, w);
             }
 
-            // Đèn LED chớp nháy xe ưu tiên khẩn cấp
+            // Đèn LED xanh đỏ chớp nháy của xe ưu tiên (Luôn hiển thị kể cả trên ảnh xe)
             if (v instanceof Ambulance || v instanceof FireTruck) {
                 boolean toggle = (System.currentTimeMillis() / 150) % 2 == 0;
                 double ledSize = 4.0 * scale;
