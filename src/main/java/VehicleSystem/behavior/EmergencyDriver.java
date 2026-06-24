@@ -6,7 +6,7 @@ import MapSystem.light.TrafficController;
 
 import java.util.List;
 
-public class EmergencyBehavior implements DrivingStrategy {
+public class EmergencyDriver implements DrivingStrategy {
 
     @Override
     public void drive(Vehicle me, List<Vehicle> allVehicles) {

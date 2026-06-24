@@ -2,8 +2,8 @@ package VehicleSystem.vehicle;
 
 import MapSystem.map.Intersection;
 import MapSystem.map.RoadGraph;
-import VehicleSystem.behavior.EmergencyBehavior;
-import VehicleSystem.behavior.NormalBehavior;
+import VehicleSystem.behavior.EmergencyDriver;
+import VehicleSystem.behavior.NormalDriver;
 import VehicleSystem.vehicle.type.*;
 
 import java.util.List;
@@ -41,11 +41,11 @@ public class VehicleSpawner {
         Vehicle newVehicle;
 
         switch (vehicleType) {
-            case 0: newVehicle = new Ambulance(startX, startY, 40, 20, 6.0, new EmergencyBehavior()); break;
-            case 1: newVehicle = new Bus(startX, startY, 60, 30, 3.5, new NormalBehavior()); break;
-            case 2: newVehicle = new Car(startX, startY, 40, 20, 5.0, new NormalBehavior()); break;
-            case 3: newVehicle = new FireTruck(startX, startY, 50, 25, 4.0, new EmergencyBehavior()); break;
-            default: newVehicle = new Motorbike(startX, startY, 20, 10, 5.0, new NormalBehavior()); break; // case 4
+            case 0: newVehicle = new Ambulance(startX, startY, 40, 20, 6.0, new EmergencyDriver()); break;
+            case 1: newVehicle = new Bus(startX, startY, 60, 30, 3.5, new NormalDriver()); break;
+            case 2: newVehicle = new Car(startX, startY, 40, 20, 5.0, new NormalDriver()); break;
+            case 3: newVehicle = new FireTruck(startX, startY, 50, 25, 4.0, new EmergencyDriver()); break;
+            default: newVehicle = new Motorbike(startX, startY, 20, 10, 5.0, new NormalDriver()); break; // case 4
         }
 
         // Gán tạm mục tiêu ban đầu chính là nút nó đang đứng để không bị lỗi Vector hướng bằng 0

@@ -1,13 +1,12 @@
 package VehicleSystem.behavior;
 
 import VehicleSystem.vehicle.Vehicle;
-import VehicleSystem.vehicle.Vehicle.TurnDirection;
 import MapSystem.light.LightState;
 import MapSystem.light.TrafficController;
 
 import java.util.List;
 
-public class NormalBehavior implements DrivingStrategy {
+public class NormalDriver implements DrivingStrategy {
 
     private void handleYielding(Vehicle me) {
         if (!me.isRequestedToYield()) return;

@@ -7,7 +7,7 @@ import MapSystem.light.TrafficController;
 
 import java.util.List;
 
-public class AggressiveBehavior implements DrivingStrategy {
+public class AggressiveDriver implements DrivingStrategy {
 
     private void handleYielding(Vehicle me) {
         if (!me.isRequestedToYield()) return;
