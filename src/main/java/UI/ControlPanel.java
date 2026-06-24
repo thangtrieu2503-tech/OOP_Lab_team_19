@@ -12,10 +12,10 @@ import javafx.scene.text.Font;
 
 public class ControlPanel extends VBox {
 
-    private Button btnRemoveNode;
-    private Button btnAddRoad;
+    private Button btnNoCountdownLightMode;
     private Button btnResume;
     private Button btnPause;
+    private Button btnMute; // THÊM KHAI BÁO NÚT MUTE Ở ĐÂY
     private Button btnZoomIn;
     private Button btnZoomOut;
     private Button btnSpawn;
@@ -41,11 +41,13 @@ public class ControlPanel extends VBox {
         double btnWidth = 160;
         double btnHeight = 28;
 
+        // Khởi tạo nút Toggle cho đèn giao thông
+        btnNoCountdownLightMode = createStyledButton("Toggle Countdown", btnWidth, btnHeight);
+
         // Khởi tạo các nút bấm phẳng bọc viền mảnh sạch sẽ
-        btnAddRoad = createStyledButton("Add Road", btnWidth, btnHeight);
-        btnRemoveNode = createStyledButton("Remove Traffic Node", btnWidth, btnHeight);
         btnResume = createStyledButton("Resume Simulation", btnWidth, btnHeight);
         btnPause = createStyledButton("Pause Simulation", btnWidth, btnHeight);
+        btnMute = createStyledButton("Mute Sound: OFF", btnWidth, btnHeight); // KHỞI TẠO NÚT MUTE VÀ ĐẶT TÊN
         btnSpawn = createStyledButton("Spawn", btnWidth, btnHeight);
         btnRectangle = createStyledButton("Rectangle Mode", 160, btnHeight);
         btnImage = createStyledButton("Image Mode", 160, btnHeight);
@@ -84,11 +86,12 @@ public class ControlPanel extends VBox {
 
         // Sắp xếp bố cục theo thứ tự đệm khoảng trống y hệt file cũ
         this.getChildren().addAll(
-                btnAddRoad,
-                btnRemoveNode,
-                createSeparatorSpace(10),
                 btnResume,
                 btnPause,
+                createSeparatorSpace(10),
+                btnMute,
+                createSeparatorSpace(10),
+                btnNoCountdownLightMode,
                 createSeparatorSpace(10),
                 btnSpawn,
                 countPanel,
@@ -118,10 +121,10 @@ public class ControlPanel extends VBox {
     }
 
     // --- CÁC HÀM GETTER KẾT NỐI SỰ KIỆN SANG MAINLAUNCHER ---
-    public Button getBtnRemoveNode() { return btnRemoveNode; }
-    public Button getBtnAddRoad() { return btnAddRoad; }
+    public Button getBtnNoCountdownLightMode() { return btnNoCountdownLightMode; }
     public Button getBtnResume() { return btnResume; }
     public Button getBtnPause() { return btnPause; }
+    public Button getBtnMute() { return btnMute; } // GETTER CHO NÚT MUTE ĐỂ LAUNCHER GỌI ĐƯỢC
     public Button getBtnZoomIn() { return btnZoomIn; }
     public Button getBtnZoomOut() { return btnZoomOut; }
     public Button getBtnSpawn() { return btnSpawn; }

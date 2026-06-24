@@ -10,8 +10,6 @@ import MapSystem.map.MapLoader;
 import MapSystem.map.RoadGraph;
 import VehicleSystem.vehicle.VehicleManager;
 import MapSystem.map.Intersection;
-// Nhớ import ControlPanel nếu file đó đang nằm ở traffic.components
-// import traffic.components.ControlPanel;
 
 public class MainLauncher extends Application {
 
@@ -75,6 +73,27 @@ public class MainLauncher extends Application {
         // 4. BẮT SỰ KIỆN NÚT BẤM TỪ CONTROL PANEL
         // =======================================================
 
+        // 🚨 THÊM MỚI: Nút Chuyển chế độ đèn đếm ngược
+        final boolean[] isCountdownMode = {true}; // Mặc định map đang dùng đèn có đếm số
+
+        controlPanel.getBtnNoCountdownLightMode().setOnAction(e -> {
+            isCountdownMode[0] = !isCountdownMode[0]; // Đảo ngược trạng thái
+
+            if (isCountdownMode[0]) {
+                controlPanel.getBtnNoCountdownLightMode().setText("Countdown: ON");
+            } else {
+                controlPanel.getBtnNoCountdownLightMode().setText("Countdown: OFF");
+            }
+
+            // Quét toàn bộ ngã tư trên bản đồ và truyền lệnh đổi bóng đèn xuống Controller
+            for (Intersection node : map.getIntersections()) {
+                if (node.getTrafficController() != null) {
+                    // Truyền lệnh xuống TrafficController
+                    node.getTrafficController().setCountdownMode(isCountdownMode[0]);
+                }
+            }
+        });
+
         // --- Nút Spawn Xe ---
         controlPanel.getBtnSpawn().setOnAction(e -> {
             String selectedType = controlPanel.getComboVehicleType().getValue();
@@ -87,16 +106,36 @@ public class MainLauncher extends Application {
 
         // --- Nút Pause (Tạm dừng mô phỏng) ---
         controlPanel.getBtnPause().setOnAction(e -> {
-            gameLoop.stop(); // Đóng băng thời gian
+            gameLoop.stop(); // Đóng băng thời gian đồ họa
+
+            // 🛑 THÊM DÒNG NÀY: Báo cho Manager biết là game đã dừng để nó tắt còi
+            vehicleManager.setPaused(true);
+
             controlPanel.getBtnPause().setDisable(true);
             controlPanel.getBtnResume().setDisable(false);
         });
 
         // --- Nút Resume (Chạy tiếp) ---
         controlPanel.getBtnResume().setOnAction(e -> {
-            gameLoop.start(); // Chạy lại thời gian
+
+            // 🟢 THÊM DÒNG NÀY: Báo cho Manager biết game chạy lại để nó hú còi tiếp
+            vehicleManager.setPaused(false);
+
+            gameLoop.start(); // Chạy lại thời gian đồ họa
             controlPanel.getBtnResume().setDisable(true);
             controlPanel.getBtnPause().setDisable(false);
+        });
+
+        // 🚨 THÊM MỚI: Nút Mute (Tắt/Bật âm thanh thủ công)
+        controlPanel.getBtnMute().setOnAction(e -> {
+            boolean currentMute = VehicleManager.isMuted;
+            vehicleManager.setMuted(!currentMute); // Đảo trạng thái
+
+            if (VehicleManager.isMuted) {
+                controlPanel.getBtnMute().setText("Mute Sound: ON");
+            } else {
+                controlPanel.getBtnMute().setText("Mute Sound: OFF");
+            }
         });
 
         // Bấm nút Zoom In trên thanh Sidebar -> Gọi canvas phóng to

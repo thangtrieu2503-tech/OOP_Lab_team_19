@@ -62,7 +62,7 @@ public class SimulationCanvas extends Canvas {
 
             System.out.println("✅ Đã nạp thành công toàn bộ ảnh xe!");
         } catch (Exception e) {
-            System.out.println("[⚠️ Đồ họa] Không nạp được ảnh Sprite xe: " + e.getMessage());
+            System.out.println("[⚠️ Đồ họa] Không nạp được ảnh xe: " + e.getMessage());
         }
     }
 
@@ -162,7 +162,7 @@ public class SimulationCanvas extends Canvas {
         // ===============================================================
         // 🟩 VẼ ĐƯỜNG BẰNG CODE (LUÔN LUÔN VẼ)
         // ===============================================================
-        gc.setFill(Color.web("#E1F0E5"));
+        gc.setFill(Color.WHITE);
         gc.fillRect(0, 0, panelWidth, panelHeight);
 
         double circleDiameter = 160.0 * scale;
@@ -188,7 +188,7 @@ public class SimulationCanvas extends Canvas {
             gc.fillOval(cx - circleDiameter / 2.0, cy - circleDiameter / 2.0, circleDiameter, circleDiameter);
         }
 
-        gc.setFill(Color.web("#E1F0E5"));
+        gc.setFill(Color.WHITE);
         Intersection n00 = null, n01 = null, n02 = null, n10 = null, n11 = null, n12 = null, n20 = null, n21 = null, n22 = null;
         for (Intersection n : currentNodes) {
             if (n.getId().equals("Node_0_0")) n00 = n; if (n.getId().equals("Node_0_1")) n01 = n; if (n.getId().equals("Node_0_2")) n02 = n;
@@ -249,7 +249,7 @@ public class SimulationCanvas extends Canvas {
             double cx = node.getPosition().getX() * scale + panOffsetX;
             double cy = node.getPosition().getY() * scale + panOffsetY;
             gc.setFill(Color.web("#28A745"));
-            double centerIslandD = 60.0 * scale;
+            double centerIslandD = 45.0 * scale;
             gc.fillOval(cx - centerIslandD / 2.0, cy - centerIslandD / 2.0, centerIslandD, centerIslandD);
             gc.setStroke(Color.WHITE); gc.setLineWidth(2.0 * scale);
             gc.strokeOval(cx - centerIslandD / 2.0, cy - centerIslandD / 2.0, centerIslandD, centerIslandD);

@@ -16,13 +16,36 @@ public class VehicleManager {
     private RoadGraph map;
     private Random random;
 
+    // 🛑 THÊM CỜ PAUSE VÀO ĐÂY
+    private boolean isPaused = false;
+
+    // 🚨 THÊM CỜ MUTE VÀO ĐÂY (static để các class khác dễ gọi)
+    public static boolean isMuted = false;
+
     public VehicleManager(RoadGraph map) {
         this.map = map;
         this.random = new Random();
     }
 
+    // 🛑 THÊM HÀM NÀY ĐỂ NHẬN LỆNH TỪ NÚT PAUSE
+    public void setPaused(boolean paused) {
+        this.isPaused = paused;
+        if (isPaused) {
+            // Ép tắt còi ngay lập tức khi vừa bấm Pause
+            UI.SoundManager.stopSiren();
+        }
+    }
+
+    // 🚨 THÊM HÀM NÀY ĐỂ NHẬN LỆNH TỪ NÚT BẤM MUTE
+    public void setMuted(boolean muted) {
+        isMuted = muted;
+        if (isMuted) {
+            UI.SoundManager.stopSiren(); // Tắt ngay lập tức còi cứu thương nếu đang kêu
+        }
+    }
+
     // ==========================================
-    // VÒNG LẶP CẬP NHẬT (Giữ nguyên 100%)
+    // VÒNG LẶP CẬP NHẬT (Giữ nguyên 100% logic cũ)
     // ==========================================
     public void updateAll() {
         // 💀 THẦN CHẾT DỌN DẸP: Quét bay màu những xe bị dán bùa isDead (quá 5s)
@@ -47,16 +70,21 @@ public class VehicleManager {
             }
         }
 
-        // 🚨 3. BẬT / TẮT CÒI TỰ ĐỘNG SAU KHI QUÉT XONG
-        if (hasEmergencyVehicle) {
-            UI.SoundManager.playSiren();
+        // 🚨 3. BẬT / TẮT CÒI TỰ ĐỘNG (ĐÃ CẬP NHẬT CHẶN ÂM THANH KHI PAUSE VÀ MUTE)
+        if (!isPaused && !isMuted) {
+            if (hasEmergencyVehicle) {
+                UI.SoundManager.playSiren();
+            } else {
+                UI.SoundManager.stopSiren();
+            }
         } else {
+            // Đảm bảo đang Pause hoặc đang Mute thì còi phải tắt
             UI.SoundManager.stopSiren();
         }
     }
 
     // ==========================================
-    // THUẬT TOÁN ĐIỀU HƯỚNG (ĐÃ CẬP NHẬT LUẬT LÀN ĐƯỜNG)
+    // THUẬT TOÁN ĐIỀU HƯỚNG (GIỮ NGUYÊN)
     // ==========================================
     public void assignNextTarget(Vehicle v) {
         Intersection currentIntersection = v.getTargetNode();
@@ -118,13 +146,13 @@ public class VehicleManager {
     }
 
     // ==========================================
-    // LỆNH THẢ XE (SPAWN) (Giữ nguyên 100%)
+    // LỆNH THẢ XE (SPAWN) (GIỮ NGUYÊN)
     // ==========================================
     public void spawnVehicle(String type) {
-        // Tìm tọa độ Node 1_0
+        // Tìm tọa độ Node 0_0
         Intersection startNode = null;
         for (Intersection n : map.getIntersections()) {
-            if ("Node_1_0".equals(n.getId())) {
+            if ("Node_0_0".equals(n.getId())) {
                 startNode = n;
                 break;
             }

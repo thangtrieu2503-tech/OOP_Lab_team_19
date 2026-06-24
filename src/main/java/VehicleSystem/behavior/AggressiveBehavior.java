@@ -1,6 +1,7 @@
 package VehicleSystem.behavior;
 
 import VehicleSystem.vehicle.Vehicle;
+import VehicleSystem.vehicle.VehicleManager; // 🚨 THÊM IMPORT NÀY ĐỂ GỌI BIẾN MUTE
 import MapSystem.light.LightState;
 import MapSystem.light.TrafficController;
 
@@ -32,7 +33,7 @@ public class AggressiveBehavior implements DrivingStrategy {
         double targetAcceleration = 0.04;
 
         // Trẻ trâu thì đạp ga nhanh hơn 20%
-        double targetMaxSpeed = me.getBaseMaxSpeed() * 1.2;
+        double targetMaxSpeed = me.getBaseMaxSpeed() * 1.4;
 
         double carDirX = Math.cos(Math.toRadians(me.getAngle()));
         double carDirY = Math.sin(Math.toRadians(me.getAngle()));
@@ -161,7 +162,9 @@ public class AggressiveBehavior implements DrivingStrategy {
                 vehicleAhead.receiveHonk();
 
                 String typeName = me.getClass().getSimpleName();
-                if (typeName.equals("Car") || typeName.equals("Bus")) {
+
+                // 🚨 ĐÃ KHÓA MÕM: Check cờ Mute từ VehicleManager trước khi gọi loa
+                if (!VehicleManager.isMuted && (typeName.equals("Car") || typeName.equals("Bus"))) {
                     UI.SoundManager.playCarHorn();
                 }
             }

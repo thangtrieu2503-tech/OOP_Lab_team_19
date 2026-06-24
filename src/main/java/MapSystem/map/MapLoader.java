@@ -1,8 +1,8 @@
 package MapSystem.map;
 
+import MapSystem.light.CountdownTrafficLight;
 import MapSystem.math.Vector2D;
 import MapSystem.light.TrafficController;
-import MapSystem.light.DelayCountdownTrafficLight;
 import MapSystem.light.LightState;
 
 public class MapLoader {
@@ -11,9 +11,9 @@ public class MapLoader {
         RoadGraph graph = new RoadGraph();
 
         // 🛠️ CHỈNH QUY MÔ MAP Ở ĐÂY
-        int rows = 3; // 3 dọc
+        int rows = 4; // 3 dọc
         int cols = 4; // 4 ngang
-        double spacing = 450.0; // Kéo giãn khoảng cách giữa các ngã tư ra gấp đôi (Cũ là 300)
+        double spacing = 450.0; // Kéo giãn khoảng cách giữa các ngã tư
         double startX = 150.0;  // Xích tọa độ đầu tiên lùi vào một chút cho cân
         double startY = 150.0;
 
@@ -39,8 +39,8 @@ public class MapLoader {
                 // Chỉ cắm đèn nếu KHÔNG PHẢI là 4 góc rẽ
                 if (!isTopLeft && !isTopRight && !isBottomLeft && !isBottomRight) {
                     TrafficController boDieuKhien = new TrafficController();
-                    boDieuKhien.addTrafficLight(new DelayCountdownTrafficLight(LightState.GREEN));
-                    boDieuKhien.addTrafficLight(new DelayCountdownTrafficLight(LightState.RED));
+                    boDieuKhien.addTrafficLight(new CountdownTrafficLight(LightState.GREEN));
+                    boDieuKhien.addTrafficLight(new CountdownTrafficLight(LightState.RED));
                     node.setTrafficController(boDieuKhien);
                 }
                 // =========================================================

@@ -123,4 +123,53 @@ public class TrafficController {
             clickedLight.forceSwitchState();
         }
     }
+
+    // =========================================================================
+    // 🚨 HÀM THÊM MỚI ĐỂ PHỤC VỤ NÚT BẤM BẬT/TẮT ĐẾM NGƯỢC
+    // =========================================================================
+    // =========================================================================
+    // 🚨 HÀM THÊM MỚI ĐỂ PHỤC VỤ NÚT BẤM BẬT/TẮT ĐẾM NGƯỢC (ĐÃ FIX LỖI ĐỎ)
+    // =========================================================================
+    // =========================================================================
+    // 🚨 HÀM THÊM MỚI ĐỂ PHỤC VỤ NÚT BẤM BẬT/TẮT ĐẾM NGƯỢC (ĐÃ TRUYỀN THAM SỐ)
+    // =========================================================================
+    public void setCountdownMode(boolean isCountdown) {
+        List<TrafficLight> newLights = new ArrayList<>();
+
+        for (TrafficLight oldLight : lights) {
+            TrafficLight newLight;
+
+            // Lấy màu hiện tại của đèn cũ để mồi cho đèn mới khởi tạo
+            LightState currentState = oldLight.getCurrentState();
+
+            // Nếu bấm bật Countdown và đèn hiện tại KHÔNG PHẢI Countdown thì lắp đèn mới
+            if (isCountdown && !(oldLight instanceof CountdownTrafficLight)) {
+                // TRUYỀN MÀU VÀO ĐÂY LÀ HẾT BÁO ĐỎ
+                newLight = new CountdownTrafficLight(currentState);
+            }
+            // Ngược lại, nếu bấm tắt Countdown và đèn hiện tại ĐANG LÀ Countdown thì thay bằng loại không có số
+            else if (!isCountdown && oldLight instanceof CountdownTrafficLight) {
+                // TRUYỀN MÀU VÀO ĐÂY NỮA
+                newLight = new NoCountdownTrafficLight(currentState);
+            }
+            // Nếu loại đèn đã khớp yêu cầu thì giữ nguyên
+            else {
+                newLight = oldLight;
+            }
+
+            // Đồng bộ dữ liệu từ đèn cũ sang đèn mới (để đèn không bị nhảy thời gian pha)
+            if (newLight != oldLight) {
+                newLight.greenDuration = oldLight.greenDuration;
+                newLight.yellowDuration = oldLight.yellowDuration;
+                newLight.redDuration = oldLight.redDuration;
+
+                // Do màu đã được truyền ngay lúc new rồi, nên không cần ép lại currentState nữa
+            }
+
+            newLights.add(newLight);
+        }
+
+        // Tráo đổi danh sách bóng đèn
+        this.lights = newLights;
+    }
 }

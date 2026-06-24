@@ -10,7 +10,7 @@ public class EmergencyBehavior implements DrivingStrategy {
 
     @Override
     public void drive(Vehicle me, List<Vehicle> allVehicles) {
-        double targetMaxSpeed = me.getBaseMaxSpeed() * 1.2; // Xe ưu tiên đi nhanh hơn
+        double targetMaxSpeed = me.getBaseMaxSpeed() * 1.3; // Xe ưu tiên đi nhanh hơn
         double targetAcceleration = 0.08;
         double carDirX = Math.cos(Math.toRadians(me.getAngle()));
         double carDirY = Math.sin(Math.toRadians(me.getAngle()));
