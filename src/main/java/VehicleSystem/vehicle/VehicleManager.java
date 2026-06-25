@@ -228,21 +228,21 @@ public class VehicleManager {
         switch (type) {
             case "Motorbike":
                 // Motorbike lúc nào sinh ra cũng được gán ngẫu nhiên 1 trong 2 tính cách
-                newVehicle = new Motorbike(sx, sy, 7, 18, 0.5, new NormalDriver());
+                newVehicle = new Motorbike(sx, sy, 7, 18, 1.0, new NormalDriver());
                 break;
             case "Ambulance":
-                newVehicle = new Ambulance(sx, sy, 16, 38, 0.7, new EmergencyDriver());
+                newVehicle = new Ambulance(sx, sy, 16, 38, 1.4, new EmergencyDriver());
                 break;
             case "Fire Truck":
-                newVehicle = new FireTruck(sx, sy, 18, 40, 0.7, new EmergencyDriver());
+                newVehicle = new FireTruck(sx, sy, 18, 40, 1.4, new EmergencyDriver());
                 break;
             case "Bus":
                 // Bus to xác nên cho ngoan ngoãn thôi, không nên trẻ trâu
-                newVehicle = new Bus(sx, sy, 18, 48, 0.7, random.nextBoolean() ? new AggressiveDriver() : new NormalDriver());
+                newVehicle = new Bus(sx, sy, 18, 48, 1.4, random.nextBoolean() ? new AggressiveDriver() : new NormalDriver());
                 break;
             default: // Car
                 // Car cũng gán ngẫu nhiên 1 trong 2 tính cách
-                newVehicle = new Car(sx, sy, 15, 35, 0.7, random.nextBoolean() ? new AggressiveDriver() : new NormalDriver());
+                newVehicle = new Car(sx, sy, 15, 35, 1.4, random.nextBoolean() ? new AggressiveDriver() : new NormalDriver());
                 break;
         }
 
