@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
+import java.util.LinkedList;
+import java.util.Queue;
 
 public class VehicleManager {
     // Thống nhất dùng 1 list này thôi
@@ -21,6 +23,11 @@ public class VehicleManager {
 
     // 🚨 THÊM CỜ MUTE VÀO ĐÂY (static để các class khác dễ gọi)
     public static boolean isMuted = false;
+
+    // ==========================================
+    // 🚀 HỆ THỐNG HÀNG ĐỢI SPAWN (QUEUE CHUẨN)
+    // ==========================================
+    private Queue<String> spawnQueue = new LinkedList<>();
 
     public VehicleManager(RoadGraph map) {
         this.map = map;
@@ -50,6 +57,9 @@ public class VehicleManager {
     public void updateAll() {
         // 💀 THẦN CHẾT DỌN DẸP: Quét bay màu những xe bị dán bùa isDead (quá 5s)
         activeVehicles.removeIf(v -> v.isDead);
+
+        // 🚀 BƯỚC MỚI: KIỂM TRA HÀNG ĐỢI VÀ THẢ XE NẾU CỬA TRỐNG
+        processPendingSpawns();
 
         Iterator<Vehicle> iterator = activeVehicles.iterator();
 
@@ -84,7 +94,44 @@ public class VehicleManager {
     }
 
     // ==========================================
-    // THUẬT TOÁN ĐIỀU HƯỚNG (GIỮ NGUYÊN)
+    // 🚀 LÕI XỬ LÝ HÀNG ĐỢI (Chỉ thả xe khi cửa Node_0_0 trống)
+    // ==========================================
+    private void processPendingSpawns() {
+        if (spawnQueue.isEmpty()) return; // Hết vé thì không làm gì cả
+
+        // Tìm tọa độ Node 0_0
+        Intersection startNode = null;
+        for (Intersection n : map.getIntersections()) {
+            if ("Node_0_0".equals(n.getId())) {
+                startNode = n;
+                break;
+            }
+        }
+        if (startNode == null) return;
+
+        double sx = startNode.getPosition().getX();
+        double sy = startNode.getPosition().getY();
+
+        // Kiểm tra xem cửa ra có bị kẹt xe nào không (Khoảng cách an toàn là 80px)
+        boolean isClear = true;
+        for (Vehicle v : activeVehicles) {
+            double dx = v.getX() - sx;
+            double dy = v.getY() - sy;
+            if (Math.sqrt(dx * dx + dy * dy) < 80.0) {
+                isClear = false;
+                break;
+            }
+        }
+
+        // Nếu cửa trống, tiến hành lấy 1 vé ra khỏi hàng đợi và triệu hồi 1 xe
+        if (isClear) {
+            String typeToSpawn = spawnQueue.poll(); // Lấy loại xe ra khỏi hàng đợi
+            executeSpawn(typeToSpawn, startNode);   // Thả xe bằng logic cũ
+        }
+    }
+
+    // ==========================================
+    // THUẬT TOÁN ĐIỀU HƯỚNG (GIỮ NGUYÊN 100%)
     // ==========================================
     public void assignNextTarget(Vehicle v) {
         Intersection currentIntersection = v.getTargetNode();
@@ -146,19 +193,25 @@ public class VehicleManager {
     }
 
     // ==========================================
-    // LỆNH THẢ XE (SPAWN) (GIỮ NGUYÊN)
+    // 🖲️ GIAO TIẾP VỚI NÚT BẤM (Đã sửa thành nạp vào Queue)
     // ==========================================
-    public void spawnVehicle(String type) {
-        // Tìm tọa độ Node 0_0
-        Intersection startNode = null;
-        for (Intersection n : map.getIntersections()) {
-            if ("Node_0_0".equals(n.getId())) {
-                startNode = n;
-                break;
-            }
-        }
 
-        if (startNode == null) return;
+    // Nút bấm Spawn 1 xe
+    public void spawnVehicle(String type) {
+        spawnQueue.add(type); // Chỉ nhét vé vào hàng đợi, không spawn ngay
+    }
+
+    // Nút bấm Spawn 5 xe (hoặc bao nhiêu tùy ý)
+    public void spawnMultipleVehicles(int count, String type) {
+        for (int i = 0; i < count; i++) {
+            spawnQueue.add(type);
+        }
+    }
+
+    // ==========================================
+    // LÕI TẠO XE (Bê nguyên 100% logic cũ của ông vào đây)
+    // ==========================================
+    private void executeSpawn(String type, Intersection startNode) {
         // Độ lệch tốc độ nhỏ để xe không chạy bằng khít nhau sau này
         double speedVariance = (random.nextDouble() * 1.0) - 0.5;
 

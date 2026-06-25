@@ -6,14 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="8cd28691-f9cf-4564-b7bb-1d06a98c30cf" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/MapSystem/light/DelayCountdownTrafficLight.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/MapSystem/light/TrafficLight.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/MapSystem/light/TrafficLight.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/MapSystem/map/MapLoader.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/MapSystem/map/MapLoader.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/UI/ImageManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/UI/ImageManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/VehicleSystem/behavior/AggressiveDriver.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/VehicleSystem/behavior/AggressiveDriver.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/VehicleSystem/behavior/EmergencyDriver.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/VehicleSystem/behavior/EmergencyDriver.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/VehicleSystem/behavior/NormalDriver.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/VehicleSystem/behavior/NormalDriver.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/VehicleSystem/vehicle/VehicleSpawner.java" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
