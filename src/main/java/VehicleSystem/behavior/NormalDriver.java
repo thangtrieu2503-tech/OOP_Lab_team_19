@@ -201,24 +201,49 @@ public class NormalDriver implements DrivingStrategy {
         }
 
         // =========================================================================
-        // 🚀 PHẦN 4: CẢM BIẾN VA CHẠM KHẨN CẤP (HITBOX) - CHỐNG ĐI XUYÊN QUA NHAU
-        // (Đặt tại đây để ghi đè mọi lệnh nếu sắp có va chạm xảy ra)
+        // 🚀 PHẦN 4: CẢM BIẾN VA CHẠM KHẨN CẤP + BỘ GIẢI QUYẾT DEADLOCK
         // =========================================================================
         for (Vehicle other : allVehicles) {
             if (other == me) continue;
 
             double dx = other.getX() - me.getX();
             double dy = other.getY() - me.getY();
-            double realDist = Math.sqrt(dx * dx + dy * dy);
 
-            // Bán kính an toàn dựa trên chiều dài của cả 2 xe
-            double emergencyBrakeDist = (me.getLength() / 2.0) + (other.getLength() / 2.0) + 2.0;
+            double forwardDist = dx * carDirX + dy * carDirY;
+            double sideDist = dx * (-carDirY) + dy * carDirX;
 
-            // Nếu 2 xe quá sát nhau bất chấp hướng đi (góc chéo, vuông góc) -> Phanh lập tức
-            if (realDist < emergencyBrakeDist) {
-                targetAcceleration = -5.0;
-                targetMaxSpeed = 0;
-                break; // Chỉ cần đụng 1 xe là dừng, không cần quét tiếp
+            double safeLength = (me.getLength() / 2.0) + (other.getLength() / 2.0) + 1.0;
+            double safeWidth = (me.getWidth() / 2.0) + (other.getWidth() / 2.0) + 1.0;
+
+            // NẾU 2 XE CHẠM NHAU (Lún vào Hitbox hình chữ nhật của nhau)
+            if (Math.abs(forwardDist) < safeLength && Math.abs(sideDist) < safeWidth) {
+
+                // Lấy hướng của xe kia để xét xem đâm kiểu gì
+                double otherDirX = Math.cos(Math.toRadians(other.getAngle()));
+                double otherDirY = Math.sin(Math.toRadians(other.getAngle()));
+                double dotP = (carDirX * otherDirX) + (carDirY * otherDirY);
+
+                boolean shouldIYield = false;
+
+                if (dotP > 0.5) {
+                    // TRƯỜNG HỢP 1: ĐI CÙNG CHIỀU (Đâm đít)
+                    // Nếu xe kia nằm ở PHÍA TRƯỚC mặt mình (forwardDist > 0) -> Mình phải phanh.
+                    if (forwardDist > 0) {
+                        shouldIYield = true;
+                    }
+                } else {
+                    // TRƯỜNG HỢP 2: CẮT NGANG NGÃ TƯ HOẶC NGƯỢC CHIỀU
+                    // Đứa nào ID nhỏ hơn thì ngoan ngoãn phanh, nhường đứa kia lách qua.
+                    if (System.identityHashCode(me) < System.identityHashCode(other)) {
+                        shouldIYield = true;
+                    }
+                }
+
+                if (shouldIYield) {
+                    targetAcceleration = -5.0; // Phanh cháy lốp
+                    targetMaxSpeed = 0;
+                    break;
+                }
             }
         }
 

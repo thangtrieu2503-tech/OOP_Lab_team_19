@@ -204,29 +204,55 @@ public class AggressiveDriver implements DrivingStrategy {
         }
 
         // =========================================================================
-        // 🚀 PHẦN 4: CẢM BIẾN VA CHẠM KHẨN CẤP (HITBOX) - CHỐNG ĐI XUYÊN QUA NHAU
+        // 🚀 PHẦN 4: CẢM BIẾN VA CHẠM KHẨN CẤP + BỘ GIẢI QUYẾT DEADLOCK
         // =========================================================================
         for (Vehicle other : allVehicles) {
             if (other == me) continue;
 
             double dx = other.getX() - me.getX();
             double dy = other.getY() - me.getY();
-            double realDist = Math.sqrt(dx * dx + dy * dy);
 
-            // Bán kính an toàn tuyệt đối
-            double emergencyBrakeDist = (me.getLength() / 2.0) + (other.getLength() / 2.0) + 2.0;
+            double forwardDist = dx * carDirX + dy * carDirY;
+            double sideDist = dx * (-carDirY) + dy * carDirX;
 
-            if (realDist < emergencyBrakeDist) {
-                targetAcceleration = -5.0; // Phanh cháy lốp
-                targetMaxSpeed = 0;
-                break; // Có va chạm là xử lý luôn
+            double safeLength = (me.getLength() / 2.0) + (other.getLength() / 2.0) + 1.0;
+            double safeWidth = (me.getWidth() / 2.0) + (other.getWidth() / 2.0) + 1.0;
+
+            // NẾU 2 XE CHẠM NHAU (Lún vào Hitbox hình chữ nhật của nhau)
+            if (Math.abs(forwardDist) < safeLength && Math.abs(sideDist) < safeWidth) {
+
+                // Lấy hướng của xe kia để xét xem đâm kiểu gì
+                double otherDirX = Math.cos(Math.toRadians(other.getAngle()));
+                double otherDirY = Math.sin(Math.toRadians(other.getAngle()));
+                double dotP = (carDirX * otherDirX) + (carDirY * otherDirY);
+
+                boolean shouldIYield = false;
+
+                if (dotP > 0.5) {
+                    // TRƯỜNG HỢP 1: ĐI CÙNG CHIỀU (Đâm đít)
+                    if (forwardDist > 0) {
+                        shouldIYield = true;
+                    }
+                } else {
+                    // TRƯỜNG HỢP 2: CẮT NGANG NGÃ TƯ HOẶC NGƯỢC CHIỀU
+                    if (System.identityHashCode(me) < System.identityHashCode(other)) {
+                        shouldIYield = true;
+                    }
+                }
+
+                if (shouldIYield) {
+                    targetAcceleration = -5.0; // Phanh cháy lốp
+                    targetMaxSpeed = 0;
+                    break;
+                }
             }
         }
 
         // =========================================================================
         // ÁP DỤNG THÔNG SỐ VÀO XE
         // =========================================================================
-        me.setMaxSpeed(targetMaxSpeed);
+        if (targetMaxSpeed <= 0 && me.getSpeed() > 0) me.setMaxSpeed(0);
+        else me.setMaxSpeed(targetMaxSpeed);
         me.setAcceleration(targetAcceleration);
     }
 }

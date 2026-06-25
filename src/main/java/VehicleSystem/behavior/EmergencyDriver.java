@@ -91,7 +91,7 @@ public class EmergencyDriver implements DrivingStrategy {
             }
 
             // Cập nhật mảng làn bị chặn
-            if (isSameDirection && forwardDist > -10.0 && forwardDist < 120.0) {
+            if (isSameDirection && forwardDist > -40.0 && forwardDist < 120.0) {
                 int otherLane = other.getCurrentLane();
                 if (otherLane >= 0 && otherLane < 3) {
                     laneBlocked[otherLane] = true;
@@ -175,6 +175,63 @@ public class EmergencyDriver implements DrivingStrategy {
             }
         }
 
+        // =========================================================================
+        // 🚀 PHẦN 4: TRƯỜNG LỰC BẢO VỆ TỪ XA + TRỌNG TÀI CHỐNG DEADLOCK
+        // (Không xóa xe, Không đè hình, Không phá logic Radar cũ)
+        // =========================================================================
+        for (Vehicle other : allVehicles) {
+            if (other == me) continue;
+
+            double dx = other.getX() - me.getX();
+            double dy = other.getY() - me.getY();
+
+            double forwardDist = dx * carDirX + dy * carDirY;
+            double sideDist = dx * (-carDirY) + dy * carDirX;
+
+            // 1. BƠM PHỒNG HITBOX TỪ XA: Bắt xe phanh trước khi chạm hình thực tế
+            // Cộng thêm 12px mũi xe và 5px bên hông để tạo khoảng hở an toàn tuyệt đối
+            double safeLength = (me.getLength() / 2.0) + (other.getLength() / 2.0) + 12.0;
+            double safeWidth = (me.getWidth() / 2.0) + (other.getWidth() / 2.0) + 5.0;
+
+            // Chỉ bắt va chạm từ 1/4 thân xe hắt lên phía trước (bỏ qua xe đang ở đuôi mình)
+            double backBuffer = - (me.getLength() / 4.0);
+
+            // NẾU CÓ XE XÂM PHẠM TRƯỜNG LỰC TỪ XA CỦA NHAU
+            if (forwardDist > backBuffer && forwardDist < safeLength && Math.abs(sideDist) < safeWidth) {
+
+                // 2. TRỌNG TÀI BẤT ĐỐI XỨNG: Quyết định ai đi, ai dừng
+                double otherDirX = Math.cos(Math.toRadians(other.getAngle()));
+                double otherDirY = Math.sin(Math.toRadians(other.getAngle()));
+                double dotP = (carDirX * otherDirX) + (carDirY * otherDirY);
+
+                boolean shouldIYield = false;
+
+                if (dotP > 0.5) {
+                    // Xe đi cùng chiều: Nguyên tắc vật lý là thằng đi sau phải ngoan ngoãn phanh
+                    if (forwardDist > 0) {
+                        shouldIYield = true;
+                    }
+                } else {
+                    // Xe cắt ngang ngã tư: Bắt buộc dùng ID làm trọng tài tuyệt đối
+                    // Thằng ID nhỏ sẽ bị ép đạp phanh. Thằng ID lớn được bơ luật và phi thẳng qua.
+                    if (System.identityHashCode(me) < System.identityHashCode(other)) {
+                        shouldIYield = true;
+                    }
+                }
+
+                // Nếu tao là thằng bị gọi tên phải nhường
+                if (shouldIYield) {
+                    targetAcceleration = -5.0; // Đạp phanh gắt
+                    targetMaxSpeed = 0;        // Đứng im tại chỗ với khoảng cách hở 12px
+                    break;
+                }
+                // Nếu không bị gọi tên -> Code chạy lướt qua, tao giữ nguyên chân ga vượt ngã tư!
+            }
+        }
+
+        // =========================================================================
+        // ÁP DỤNG THÔNG SỐ VÀO XE
+        // =========================================================================
         if (targetMaxSpeed <= 0 && me.getSpeed() > 0) me.setMaxSpeed(0);
         else me.setMaxSpeed(targetMaxSpeed);
         me.setAcceleration(targetAcceleration);
