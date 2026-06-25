@@ -1,7 +1,7 @@
 package VehicleSystem.behavior;
 
 import VehicleSystem.vehicle.Vehicle;
-import VehicleSystem.vehicle.VehicleManager; // 🚨 THÊM IMPORT NÀY ĐỂ GỌI BIẾN MUTE
+import VehicleSystem.vehicle.VehicleManager;
 import MapSystem.light.LightState;
 import MapSystem.light.TrafficController;
 
@@ -33,7 +33,7 @@ public class AggressiveDriver implements DrivingStrategy {
         double targetAcceleration = 0.04;
 
         // Trẻ trâu thì đạp ga nhanh hơn 20%
-        double targetMaxSpeed = me.getBaseMaxSpeed() * 1.4;
+        double targetMaxSpeed = me.getBaseMaxSpeed() * 1.2;
 
         double carDirX = Math.cos(Math.toRadians(me.getAngle()));
         double carDirY = Math.sin(Math.toRadians(me.getAngle()));
@@ -115,12 +115,12 @@ public class AggressiveDriver implements DrivingStrategy {
             double otherDirX = Math.cos(Math.toRadians(other.getAngle()));
             double otherDirY = Math.sin(Math.toRadians(other.getAngle()));
 
-            // Tích vô hướng (1.0 = cùng chiều, 0 = vuông góc, -1.0 = ngược chiều)
+            // Tích vô hướng
             double directionDotProduct = (carDirX * otherDirX) + (carDirY * otherDirY);
 
-            // Nếu 2 xe đang đi ngược hướng nhau (góc > 120 độ) -> Chắc chắn ở làn đối diện
+            // Nếu 2 xe đang đi ngược hướng nhau -> Bỏ qua
             if (directionDotProduct < -0.5) {
-                continue; // Bỏ qua ngay lập tức, không thèm nhận làm vật cản!
+                continue;
             }
             // =========================================================
 
@@ -157,13 +157,13 @@ public class AggressiveDriver implements DrivingStrategy {
         if (obstacleAhead && vehicleAhead != null) {
             double safeDist = (me.getLength() / 2.0) + (vehicleAhead.getLength() / 2.0);
 
-            // 🚨 SỬA Ở ĐÂY: Chỉ bóp còi khi khoảng cách gần VÀ xe trước đang di chuyển
+            // 🚨 BÓP CÒI KHI GẦN VÀ XE TRƯỚC ĐANG CHẠY
             if (minDistance <= safeDist + 48.0 && vehicleAhead.getSpeed() > 0.1 && me.getSpeed() > 0.5) {
                 vehicleAhead.receiveHonk();
 
                 String typeName = me.getClass().getSimpleName();
 
-                // 🚨 ĐÃ KHÓA MÕM: Check cờ Mute từ VehicleManager trước khi gọi loa
+                // Check cờ Mute
                 if (!VehicleManager.isMuted && (typeName.equals("Car") || typeName.equals("Bus"))) {
                     UI.SoundManager.playCarHorn();
                 }
@@ -203,6 +203,29 @@ public class AggressiveDriver implements DrivingStrategy {
             me.stuckTime = 0;
         }
 
+        // =========================================================================
+        // 🚀 PHẦN 4: CẢM BIẾN VA CHẠM KHẨN CẤP (HITBOX) - CHỐNG ĐI XUYÊN QUA NHAU
+        // =========================================================================
+        for (Vehicle other : allVehicles) {
+            if (other == me) continue;
+
+            double dx = other.getX() - me.getX();
+            double dy = other.getY() - me.getY();
+            double realDist = Math.sqrt(dx * dx + dy * dy);
+
+            // Bán kính an toàn tuyệt đối
+            double emergencyBrakeDist = (me.getLength() / 2.0) + (other.getLength() / 2.0) + 2.0;
+
+            if (realDist < emergencyBrakeDist) {
+                targetAcceleration = -5.0; // Phanh cháy lốp
+                targetMaxSpeed = 0;
+                break; // Có va chạm là xử lý luôn
+            }
+        }
+
+        // =========================================================================
+        // ÁP DỤNG THÔNG SỐ VÀO XE
+        // =========================================================================
         me.setMaxSpeed(targetMaxSpeed);
         me.setAcceleration(targetAcceleration);
     }

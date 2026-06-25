@@ -5,9 +5,9 @@ import MapSystem.math.Vector2D;
 public abstract class TrafficLight {
     protected LightState currentState;
     protected double internalTimer;
-    protected double greenDuration = 15.0;
-    protected double yellowDuration = 3.0;
-    protected double redDuration = 15.0;
+    protected double greenDuration = 6.0;
+    protected double yellowDuration = 1.0;
+    protected double redDuration = 7.0;
     private double x;
     private double y;
 

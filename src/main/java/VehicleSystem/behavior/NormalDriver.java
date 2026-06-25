@@ -200,6 +200,31 @@ public class NormalDriver implements DrivingStrategy {
             targetAcceleration = -3.0;
         }
 
+        // =========================================================================
+        // 🚀 PHẦN 4: CẢM BIẾN VA CHẠM KHẨN CẤP (HITBOX) - CHỐNG ĐI XUYÊN QUA NHAU
+        // (Đặt tại đây để ghi đè mọi lệnh nếu sắp có va chạm xảy ra)
+        // =========================================================================
+        for (Vehicle other : allVehicles) {
+            if (other == me) continue;
+
+            double dx = other.getX() - me.getX();
+            double dy = other.getY() - me.getY();
+            double realDist = Math.sqrt(dx * dx + dy * dy);
+
+            // Bán kính an toàn dựa trên chiều dài của cả 2 xe
+            double emergencyBrakeDist = (me.getLength() / 2.0) + (other.getLength() / 2.0) + 2.0;
+
+            // Nếu 2 xe quá sát nhau bất chấp hướng đi (góc chéo, vuông góc) -> Phanh lập tức
+            if (realDist < emergencyBrakeDist) {
+                targetAcceleration = -5.0;
+                targetMaxSpeed = 0;
+                break; // Chỉ cần đụng 1 xe là dừng, không cần quét tiếp
+            }
+        }
+
+        // =========================================================================
+        // ÁP DỤNG THÔNG SỐ VÀO XE
+        // =========================================================================
         if (targetMaxSpeed <= 0 && me.getSpeed() > 0) me.setMaxSpeed(0);
         else me.setMaxSpeed(targetMaxSpeed);
         me.setAcceleration(targetAcceleration);

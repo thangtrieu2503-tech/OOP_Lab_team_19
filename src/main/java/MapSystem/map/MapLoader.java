@@ -11,7 +11,7 @@ public class MapLoader {
         RoadGraph graph = new RoadGraph();
 
         // 🛠️ CHỈNH QUY MÔ MAP Ở ĐÂY
-        int rows = 4; // 3 dọc
+        int rows = 3; // 3 dọc
         int cols = 4; // 4 ngang
         double spacing = 450.0; // Kéo giãn khoảng cách giữa các ngã tư
         double startX = 150.0;  // Xích tọa độ đầu tiên lùi vào một chút cho cân

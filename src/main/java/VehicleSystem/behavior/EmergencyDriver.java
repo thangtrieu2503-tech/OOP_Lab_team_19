@@ -10,7 +10,7 @@ public class EmergencyDriver implements DrivingStrategy {
 
     @Override
     public void drive(Vehicle me, List<Vehicle> allVehicles) {
-        double targetMaxSpeed = me.getBaseMaxSpeed() * 1.3; // Xe ưu tiên đi nhanh hơn
+        double targetMaxSpeed = me.getBaseMaxSpeed() * 1.2; // Xe ưu tiên đi nhanh hơn
         double targetAcceleration = 0.08;
         double carDirX = Math.cos(Math.toRadians(me.getAngle()));
         double carDirY = Math.sin(Math.toRadians(me.getAngle()));
@@ -28,9 +28,7 @@ public class EmergencyDriver implements DrivingStrategy {
             isInsideIntersection = Math.abs(carX - targetX) < boxSize && Math.abs(carY - targetY) < boxSize;
         }
 
-        // =========================================================================
         // 🚀 PHẦN 1: EMERGENCY - VƯỢT ĐÈN NHƯNG ĐI CHẬM
-        // =========================================================================
         if (me.getTargetNode() != null && me.getTargetNode().getTrafficController() != null) {
             TrafficController controller = me.getTargetNode().getTrafficController();
             if (!controller.getLights().isEmpty()) {

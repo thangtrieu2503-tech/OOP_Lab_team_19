@@ -6,6 +6,14 @@
   <component name="ChangeListManager">
     <list default="true" id="8cd28691-f9cf-4564-b7bb-1d06a98c30cf" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/MapSystem/light/DelayCountdownTrafficLight.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/MapSystem/light/TrafficLight.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/MapSystem/light/TrafficLight.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/MapSystem/map/MapLoader.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/MapSystem/map/MapLoader.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/UI/ImageManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/UI/ImageManager.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/VehicleSystem/behavior/AggressiveDriver.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/VehicleSystem/behavior/AggressiveDriver.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/VehicleSystem/behavior/EmergencyDriver.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/VehicleSystem/behavior/EmergencyDriver.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/VehicleSystem/behavior/NormalDriver.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/VehicleSystem/behavior/NormalDriver.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/VehicleSystem/vehicle/VehicleSpawner.java" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -35,29 +43,29 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Application.MainLauncher.executor": "Run",
-    "Application.UI.MainLauncher.executor": "Run",
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
-    "codeWithMe.voiceChat.enabledByDefault": "false",
-    "git-widget-placeholder": "finish",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "D:/TrafficSimulation/src/main/resources/sounds",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "project.structure.last.edited": "Modules",
-    "project.structure.proportion": "0.15",
-    "project.structure.side.proportion": "0.2"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Application.MainLauncher.executor&quot;: &quot;Run&quot;,
+    &quot;Application.UI.MainLauncher.executor&quot;: &quot;Run&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;finish&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/TrafficSimulation/src/main/resources/sounds&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="D:\TrafficSimulation\src\main\resources\sounds" />

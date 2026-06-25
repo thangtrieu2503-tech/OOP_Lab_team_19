@@ -1,10 +1,9 @@
-package UI; // Thay bằng package của ông
+package UI;
 
 import javafx.scene.image.Image;
 import java.io.File;
 
 public class ImageManager {
-    public static Image mapImg;
     public static Image carImg;
     public static Image motorbikeImg;
     public static Image busImg;
