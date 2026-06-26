@@ -10,9 +10,7 @@ public class NormalDriver implements DrivingStrategy {
 
     private void handleYielding(Vehicle me) {
         if (!me.isRequestedToYield()) return;
-        int myLane = me.getCurrentLane();
-        if (myLane > 0) me.changeLane(myLane - 1);
-        else if (myLane < 2) me.changeLane(myLane + 1);
+        // Normal driver không lạng lách để nhường đường
         me.setRequestedToYield(false);
     }
 
@@ -165,7 +163,8 @@ public class NormalDriver implements DrivingStrategy {
             double safeDist = (me.getLength() / 2.0) + (vehicleAhead.getLength() / 2.0);
             boolean isChangingLane = false;
 
-            // Tìm làn trống để lách
+            // Tìm làn trống để lách (Đã tắt đối với Normal Driver)
+            /*
             if (!isInsideIntersection && distToNode > 30.0) {
                 if (myLane == 1) {
                     if (!laneBlocked[0]) { me.changeLane(0); isChangingLane = true; }
@@ -176,6 +175,7 @@ public class NormalDriver implements DrivingStrategy {
                     if (!laneBlocked[1]) { me.changeLane(1); isChangingLane = true; }
                 }
             }
+            */
 
             // 🚨 SỬA LỖI ĐÈ NHAU TẠI ĐÂY
             if (minDistance <= safeDist + 5.0) {
@@ -212,17 +212,21 @@ public class NormalDriver implements DrivingStrategy {
             double forwardDist = dx * carDirX + dy * carDirY;
             double sideDist = dx * (-carDirY) + dy * carDirX;
 
-            double safeLength = (me.getLength() / 2.0) + (other.getLength() / 2.0) + 1.0;
-            double safeWidth = (me.getWidth() / 2.0) + (other.getWidth() / 2.0) + 1.0;
+            double otherDirX = Math.cos(Math.toRadians(other.getAngle()));
+            double otherDirY = Math.sin(Math.toRadians(other.getAngle()));
+            double dotP = (carDirX * otherDirX) + (carDirY * otherDirY);
+
+            double safeLength, safeWidth;
+            if (Math.abs(dotP) < 0.5) { // Góc chéo hoặc vuông góc
+                safeLength = (me.getLength() / 2.0) + (other.getWidth() / 2.0) + 3.0;
+                safeWidth = (me.getWidth() / 2.0) + (other.getLength() / 2.0) + 3.0;
+            } else { // Cùng chiều hoặc ngược chiều
+                safeLength = (me.getLength() / 2.0) + (other.getLength() / 2.0) + 3.0;
+                safeWidth = (me.getWidth() / 2.0) + (other.getWidth() / 2.0) + 3.0;
+            }
 
             // NẾU 2 XE CHẠM NHAU (Lún vào Hitbox hình chữ nhật của nhau)
             if (Math.abs(forwardDist) < safeLength && Math.abs(sideDist) < safeWidth) {
-
-                // Lấy hướng của xe kia để xét xem đâm kiểu gì
-                double otherDirX = Math.cos(Math.toRadians(other.getAngle()));
-                double otherDirY = Math.sin(Math.toRadians(other.getAngle()));
-                double dotP = (carDirX * otherDirX) + (carDirY * otherDirY);
-
                 boolean shouldIYield = false;
 
                 if (dotP > 0.5) {
@@ -233,9 +237,15 @@ public class NormalDriver implements DrivingStrategy {
                     }
                 } else {
                     // TRƯỜNG HỢP 2: CẮT NGANG NGÃ TƯ HOẶC NGƯỢC CHIỀU
-                    // Đứa nào ID nhỏ hơn thì ngoan ngoãn phanh, nhường đứa kia lách qua.
-                    if (System.identityHashCode(me) < System.identityHashCode(other)) {
+                    int myPriority = getTurnPriority(me);
+                    int otherPriority = getTurnPriority(other);
+
+                    if (myPriority < otherPriority) {
                         shouldIYield = true;
+                    } else if (myPriority == otherPriority) {
+                        if (System.identityHashCode(me) < System.identityHashCode(other)) {
+                            shouldIYield = true;
+                        }
                     }
                 }
 

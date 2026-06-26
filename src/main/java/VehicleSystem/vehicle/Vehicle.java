@@ -254,10 +254,14 @@ public abstract class Vehicle {
     public void changeLane(int targetLane) {
         if (targetLane >= 0 && targetLane < laneDistances.length) {
             // --- KHÓA VÔ LĂNG CHỐNG LẮC ---
-            double dx = this.targetLaneOffsetX - this.laneOffsetX;
-            double dy = this.targetLaneOffsetY - this.laneOffsetY;
-            if (Math.sqrt(dx * dx + dy * dy) > 1.0) {
-                return; // Đang bận chuyển làn, từ chối lệnh mới!
+            if (targetNode != null) {
+                if (Math.abs(this.dirX) > 0) {
+                    double idealY = targetNode.getPosition().getY() + this.targetLaneOffsetY;
+                    if (Math.abs(idealY - this.y) > 1.0) return;
+                } else if (Math.abs(this.dirY) > 0) {
+                    double idealX = targetNode.getPosition().getX() + this.targetLaneOffsetX;
+                    if (Math.abs(idealX - this.x) > 1.0) return;
+                }
             }
 
             this.currentLane = targetLane;
